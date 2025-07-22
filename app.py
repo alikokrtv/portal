@@ -20,6 +20,14 @@ except:
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'plus-kitchen-secret-key-2024')
 
+# Custom Jinja2 filters
+@app.template_filter('nl2br')
+def nl2br_filter(text):
+    """Convert newlines to <br> tags"""
+    if text:
+        return text.replace('\n', '<br>')
+    return text
+
 # MySQL Configuration - Production Ready
 MYSQL_CONFIG = {
     'host': os.environ.get('DB_HOST', 'localhost'),
@@ -401,6 +409,71 @@ def create_personnel():
         flash(f'Hata: {str(e)}', 'error')
         return redirect(url_for('personnel'))
 
+@app.route('/personnel/<int:id>')
+@require_login
+def personnel_detail(id):
+    conn = get_db_connection()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    cursor.execute('''
+        SELECT u.*, d.name as department_name
+        FROM users u 
+        LEFT JOIN departments d ON u.department = d.name
+        WHERE u.id = %s
+    ''', (id,))
+    user = cursor.fetchone()
+    conn.close()
+    
+    if not user:
+        flash('Personel bulunamadı!', 'error')
+        return redirect(url_for('personnel'))
+    
+    return render_template('personnel_detail.html', user=user)
+
+@app.route('/personnel/<int:id>/edit', methods=['GET', 'POST'])
+@require_admin
+def personnel_edit(id):
+    conn = get_db_connection()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    
+    if request.method == 'POST':
+        first_name = request.form['first_name']
+        last_name = request.form['last_name']
+        email = request.form['email']
+        position = request.form['position']
+        department = request.form['department']
+        phone = request.form.get('phone', '')
+        
+        cursor.execute('''
+            UPDATE users 
+            SET first_name = %s, last_name = %s, email = %s, 
+                position = %s, department = %s, phone_number = %s
+            WHERE id = %s
+        ''', (first_name, last_name, email, position, department, phone, id))
+        conn.commit()
+        conn.close()
+        
+        flash('Personel bilgileri güncellendi!', 'success')
+        return redirect(url_for('personnel_detail', id=id))
+    
+    # GET request - form göster
+    cursor.execute('''
+        SELECT u.*, d.name as department_name
+        FROM users u 
+        LEFT JOIN departments d ON u.department = d.name
+        WHERE u.id = %s
+    ''', (id,))
+    user = cursor.fetchone()
+    
+    cursor.execute('SELECT * FROM departments ORDER BY name')
+    departments = cursor.fetchall()
+    conn.close()
+    
+    if not user:
+        flash('Personel bulunamadı!', 'error')
+        return redirect(url_for('personnel'))
+    
+    return render_template('personnel_edit.html', user=user, departments=departments)
+
 @app.route('/departments')
 @require_login
 def departments():
@@ -463,7 +536,7 @@ def messages():
         FROM messages m 
         JOIN users u ON m.sender_id = u.id 
         WHERE m.receiver_id = %s
-        ORDER BY m.created_at DESC
+        ORDER BY m.sent_at DESC
     ''', (session['user_id'],))
     messages = cursor.fetchall()
     

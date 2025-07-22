@@ -90,10 +90,10 @@
                         <i class="bi bi-person me-2 text-muted"></i>
                         <span>{{ user.username }}</span>
                     </div>
-                    {% if user.phone %}
+                    {% if user.phone_number %}
                     <div class="d-flex align-items-center text-sm">
                         <i class="bi bi-telephone me-2 text-muted"></i>
-                        <span>{{ user.phone }}</span>
+                        <span>{{ user.phone_number }}</span>
                     </div>
                     {% endif %}
                     {% if user.hire_date %}
@@ -114,20 +114,24 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <small class="text-muted">
                         <i class="bi bi-clock me-1"></i>
-                        Kayıt: {{ user.created_at.strftime('%d.%m.%Y') if user.created_at else 'Bilinmiyor' }}
+                        İşe Başlama: {{ user.hire_date.strftime('%d.%m.%Y') if user.hire_date else 'Belirtilmemiş' }}
                     </small>
                     <div class="btn-group btn-group-sm">
+                        {% if session.is_admin %}
                         <button class="btn btn-outline-primary btn-sm" 
                                 title="Mesaj Gönder"
                                 onclick="sendMessageToUser('{{ user.id }}', '{{ user.first_name }} {{ user.last_name }}')">
                             <i class="bi bi-envelope"></i>
                         </button>
-                        <button class="btn btn-outline-info btn-sm" title="Detaylar">
+                        {% endif %}
+                        <a href="{{ url_for('personnel_detail', id=user.id) }}" class="btn btn-outline-info btn-sm" title="Detaylar">
                             <i class="bi bi-eye"></i>
-                        </button>
-                        <button class="btn btn-outline-secondary btn-sm" title="Düzenle">
+                        </a>
+                        {% if session.is_admin %}
+                        <a href="{{ url_for('personnel_edit', id=user.id) }}" class="btn btn-outline-secondary btn-sm" title="Düzenle">
                             <i class="bi bi-pencil"></i>
-                        </button>
+                        </a>
+                        {% endif %}
                     </div>
                 </div>
             </div>
