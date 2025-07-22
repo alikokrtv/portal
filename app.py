@@ -5,6 +5,12 @@ import os
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
+# Türkçe aylar
+TURKISH_MONTHS = {
+    1: 'Ocak', 2: 'Şubat', 3: 'Mart', 4: 'Nisan', 5: 'Mayıs', 6: 'Haziran',
+    7: 'Temmuz', 8: 'Ağustos', 9: 'Eylül', 10: 'Ekim', 11: 'Kasım', 12: 'Aralık'
+}
+
 # Load environment variables (optional)
 try:
     load_dotenv()
@@ -26,26 +32,35 @@ MYSQL_CONFIG = {
 
 # Database connection with fallback passwords
 def get_db_connection():
-    passwords_to_try = ['255223Rtv', '', 'root', 'admin', '2552232']
+    passwords_to_try = ['255223Rtv', '', 'root', 'admin', '123456', '2552232']
     
     for password in passwords_to_try:
         try:
             config = MYSQL_CONFIG.copy()
             config['password'] = password
-            return pymysql.connect(**config)
+            print(f"🔄 Trying password: {'[empty]' if password == '' else '[hidden]'}")
+            connection = pymysql.connect(**config)
+            print(f"✅ Database connected successfully!")
+            return connection
         except pymysql.err.OperationalError as e:
             if "Access denied" in str(e):
+                print(f"❌ Access denied for password: {'[empty]' if password == '' else '[hidden]'}")
                 continue
             else:
+                print(f"❌ Database connection error: {e}")
                 raise e
     
     # If all passwords fail, try without password
     try:
         config = MYSQL_CONFIG.copy()
         config.pop('password', None)
-        return pymysql.connect(**config)
-    except:
-        raise Exception("MySQL bağlantısı kurulamadı. Şifre veya database ayarlarını kontrol edin.")
+        print("🔄 Trying without password...")
+        connection = pymysql.connect(**config)
+        print("✅ Database connected without password!")
+        return connection
+    except Exception as e:
+        print(f"❌ Final attempt failed: {e}")
+        raise Exception("MySQL bağlantısı kurulamadı. MySQL sunucusunun çalışır durumda olduğundan emin olun.")
 
 def require_login(f):
     def wrapper(*args, **kwargs):
@@ -134,7 +149,7 @@ def dashboard():
     ''')
     announcements = cursor.fetchall()
     
-    # Get upcoming birthdays (next 30 days) - bugün olanları farklı göster
+    # Get upcoming birthdays (next 30 days) - Türkçe aylarla
     cursor.execute('''
         SELECT u.first_name, u.last_name, u.birth_date,
                CASE 
@@ -152,7 +167,9 @@ def dashboard():
                        INTERVAL (DAYOFYEAR(u.birth_date) - 1) DAY),
                        CURDATE()
                    ), ' gün sonra')
-               END as birthday_text
+               END as birthday_text,
+               DAY(u.birth_date) as birth_day,
+               MONTH(u.birth_date) as birth_month
         FROM users u 
         WHERE u.birth_date IS NOT NULL
         AND (
@@ -167,6 +184,13 @@ def dashboard():
         LIMIT 5
     ''')
     upcoming_birthdays = cursor.fetchall()
+    
+    # Türkçe ay adlarını ekle
+    for birthday in upcoming_birthdays:
+        if birthday['birth_month']:
+            birthday['turkish_month'] = TURKISH_MONTHS.get(birthday['birth_month'], '')
+        else:
+            birthday['turkish_month'] = ''
     
     # Get work anniversaries (next 30 days) - bugün olanları farklı göster
     cursor.execute('''
@@ -266,6 +290,26 @@ def create_announcement():
     
     flash('Duyuru başarıyla oluşturuldu!', 'success')
     return redirect(url_for('announcements'))
+
+@app.route('/announcements/<int:id>')
+@require_login
+def announcement_detail(id):
+    conn = get_db_connection()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    cursor.execute('''
+        SELECT a.*, u.first_name, u.last_name 
+        FROM announcements a 
+        JOIN users u ON a.author_id = u.id 
+        WHERE a.id = %s
+    ''', (id,))
+    announcement = cursor.fetchone()
+    conn.close()
+    
+    if not announcement:
+        flash('Duyuru bulunamadı!', 'error')
+        return redirect(url_for('announcements'))
+    
+    return render_template('announcement_detail.html', announcement=announcement)
 
 # Database kolonları düzeltiliyor:
 # users.department_id YOK -> users.department VAR

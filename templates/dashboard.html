@@ -72,7 +72,11 @@
                                 <div>
                                     <div class="fw-semibold">{{ birthday.first_name }} {{ birthday.last_name }}</div>
                                     <small class="text-muted">
-                                        {{ birthday.birth_date.strftime('%d %B') if birthday.birth_date else 'N/A' }}
+                                        {% if birthday.birth_day and birthday.turkish_month %}
+                                            {{ birthday.birth_day }} {{ birthday.turkish_month }}
+                                        {% else %}
+                                            Tarih bilinmiyor
+                                        {% endif %}
                                     </small>
                                 </div>
                             </div>

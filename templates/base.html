@@ -47,7 +47,7 @@
             --yellow-400: hsl(45, 93%, 58%);
             --yellow-500: hsl(38, 92%, 50%);
             
-            --primary: var(--blue-600);
+            --primary: #00c4b3;
             --secondary: var(--gray-600);
             --background: var(--gray-50);
             --card: hsl(0, 0%, 100%);
@@ -470,7 +470,8 @@
         <div class="sidebar-content">
             <!-- Logo -->
             <a href="{{ url_for('dashboard') }}" class="logo">
-                <i class="bi bi-house-heart"></i> Plus Kitchen
+                <img src="https://pluskitchen.com.tr/images/logo.png" alt="Plus Kitchen Logo" style="height: 35px; width: auto; margin-right: 8px;"> 
+                Plus Kitchen Portal
             </a>
             
             {% if session.user_id %}
