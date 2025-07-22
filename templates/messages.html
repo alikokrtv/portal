@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block title %}Mesajlar{% endblock %}
+{% block page_title %}Mesajlar{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="h4 mb-0">Mesajlarım</h2>
+        <p class="text-muted mb-0">Gelen mesajlarınızı görüntüleyin ve yanıtlayın</p>
+    </div>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newMessageModal">
+        <i class="bi bi-plus-circle me-2"></i>
+        Yeni Mesaj
+    </button>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-inbox me-2"></i>
+                        Gelen Mesajlar
+                    </h5>
+                    <span class="badge bg-primary">{{ messages|length }} mesaj</span>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                {% if messages %}
+                    <div class="list-group list-group-flush">
+                        {% for message in messages %}
+                        <div class="list-group-item list-group-item-action {% if not message.is_read %}bg-light{% endif %}" 
+                             style="cursor: pointer;" 
+                             onclick="showMessageDetail({{ message.id }}, '{{ message.subject }}', '{{ message.content }}', '{{ message.first_name }} {{ message.last_name }}', '{{ message.created_at }}', {{ message.is_read|tojson }})">
+                            <div class="d-flex w-100 justify-content-between align-items-start">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                        <span class="text-white small fw-bold">{{ message.first_name[0] }}{{ message.last_name[0] }}</span>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1 {% if not message.is_read %}fw-bold{% endif %}">
+                                            {{ message.first_name }} {{ message.last_name }}
+                                            {% if not message.is_read %}
+                                                <span class="badge bg-warning text-dark ms-2">Yeni</span>
+                                            {% endif %}
+                                        </h6>
+                                        <p class="mb-1 {% if not message.is_read %}fw-semibold{% endif %}">{{ message.subject or 'Konu yok' }}</p>
+                                        <small class="text-muted">{{ message.content[:80] }}{% if message.content|length > 80 %}...{% endif %}</small>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <small class="text-muted">{{ message.created_at }}</small>
+                                    {% if not message.is_read %}
+                                        <br>
+                                        <span class="badge bg-primary mt-1">Okunmadı</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i>
+                        <h4 class="mt-3 mb-2">Henüz mesajınız yok</h4>
+                        <p class="text-muted mb-4">Mesaj kutunuz boş görünüyor.</p>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newMessageModal">
+                            <i class="bi bi-plus-circle me-2"></i>
+                            İlk Mesajı Gönder
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- New Message Modal -->
+<div class="modal fade" id="newMessageModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-envelope me-2"></i>
+                    Yeni Mesaj Gönder
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('send_message') }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="receiver_id" class="form-label">Alıcı</label>
+                        <select class="form-control" id="receiver_id" name="receiver_id" required>
+                            <option value="">Alıcı seçiniz...</option>
+                            {% for user in users %}
+                                <option value="{{ user.id }}">{{ user.first_name }} {{ user.last_name }} ({{ user.department or 'Departman yok' }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="subject" class="form-label">Konu</label>
+                        <input type="text" class="form-control" id="subject" name="subject" placeholder="Mesaj konusu...">
+                    </div>
+                    <div class="mb-3">
+                        <label for="content" class="form-label">Mesaj İçeriği</label>
+                        <textarea class="form-control" id="content" name="content" rows="6" required placeholder="Mesajınızı buraya yazın..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x me-2"></i>
+                        İptal
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-send me-2"></i>
+                        Mesaj Gönder
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Message Detail Modal -->
+<div class="modal fade" id="messageDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="messageDetailTitle">
+                    <i class="bi bi-envelope-open me-2"></i>
+                    Mesaj Detayı
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <div class="d-flex align-items-center mb-2">
+                        <strong>Gönderen:</strong>
+                        <span class="ms-2" id="messageSender"></span>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <strong>Tarih:</strong>
+                        <span class="ms-2" id="messageDate"></span>
+                    </div>
+                    <div class="d-flex align-items-center mb-3">
+                        <strong>Konu:</strong>
+                        <span class="ms-2" id="messageSubject"></span>
+                    </div>
+                </div>
+                <hr>
+                <div class="mt-3">
+                    <strong>Mesaj İçeriği:</strong>
+                    <div class="mt-2 p-3 bg-light rounded" id="messageContent" style="white-space: pre-wrap;"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x me-2"></i>
+                    Kapat
+                </button>
+                <button type="button" class="btn btn-primary" onclick="replyToMessage()">
+                    <i class="bi bi-reply me-2"></i>
+                    Yanıtla
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentMessageId = null;
+
+function showMessageDetail(messageId, subject, content, sender, date, isRead) {
+    currentMessageId = messageId;
+    
+    document.getElementById('messageSubject').textContent = subject || 'Konu yok';
+    document.getElementById('messageContent').textContent = content;
+    document.getElementById('messageSender').textContent = sender;
+    document.getElementById('messageDate').textContent = date;
+    
+    // Mark as read if not already read
+    if (!isRead) {
+        markMessageRead(messageId);
+    }
+    
+    const modal = new bootstrap.Modal(document.getElementById('messageDetailModal'));
+    modal.show();
+}
+
+function replyToMessage() {
+    // Close detail modal and open new message modal
+    const detailModal = bootstrap.Modal.getInstance(document.getElementById('messageDetailModal'));
+    detailModal.hide();
+    
+    // Fill reply data
+    const sender = document.getElementById('messageSender').textContent;
+    const originalSubject = document.getElementById('messageSubject').textContent;
+    
+    setTimeout(() => {
+        const newMessageModal = new bootstrap.Modal(document.getElementById('newMessageModal'));
+        newMessageModal.show();
+        
+        // Set subject with "Re:" prefix
+        document.getElementById('subject').value = 'Re: ' + originalSubject;
+    }, 500);
+}
+</script>
+{% endblock %} 

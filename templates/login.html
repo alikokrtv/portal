@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Giriş Yap - Plus Kitchen Portal{% endblock %}
+
+{% block content %}
+<div class="container-fluid vh-100 d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+    <div class="col-md-4">
+        <div class="card shadow-lg">
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <i class="bi bi-house-heart" style="font-size: 3rem; color: var(--primary-color);"></i>
+                    <h2 class="mt-3 mb-0">Plus Kitchen Portal</h2>
+                    <p class="text-muted">Giriş yapın</p>
+                </div>
+                
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Kullanıcı Adı</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-person"></i>
+                            </span>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="password" class="form-label">Şifre</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-lock"></i>
+                            </span>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100 mb-3">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>
+                        Giriş Yap
+                    </button>
+                </form>
+                
+                <div class="text-center">
+                    <small class="text-muted">
+                        Demo: Kullanıcı adı: <strong>admin</strong>, Şifre: <strong>admin123</strong>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

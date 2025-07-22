@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Duyurular{% endblock %}
+{% block page_title %}Duyurular{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="h4 mb-0">Tüm Duyurular</h2>
+        <p class="text-muted mb-0">Şirket duyurularını görüntüleyin ve yönetin</p>
+    </div>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newAnnouncementModal">
+        <i class="bi bi-plus-circle me-2"></i>
+        Yeni Duyuru
+    </button>
+</div>
+
+<div class="row">
+    {% if announcements %}
+        {% for announcement in announcements %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 30px; height: 30px;">
+                            <i class="bi bi-megaphone text-white small"></i>
+                        </div>
+                        <small class="text-muted">{{ announcement.first_name }} {{ announcement.last_name }}</small>
+                    </div>
+                    <small class="text-muted">{{ announcement.created_at }}</small>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ announcement.title }}</h5>
+                    <p class="card-text">{{ announcement.content }}</p>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">
+                            <i class="bi bi-clock me-1"></i>
+                            {{ announcement.created_at }}
+                        </small>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-primary btn-sm" title="Düzenle">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm" title="Sil">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="bi bi-megaphone text-muted" style="font-size: 4rem;"></i>
+                <h4 class="mt-3 mb-2">Henüz duyuru bulunmuyor</h4>
+                <p class="text-muted mb-4">İlk duyuruyu oluşturmak için aşağıdaki butona tıklayın.</p>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newAnnouncementModal">
+                    <i class="bi bi-plus-circle me-2"></i>
+                    İlk Duyuruyu Oluştur
+                </button>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- New Announcement Modal -->
+<div class="modal fade" id="newAnnouncementModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-megaphone me-2"></i>
+                    Yeni Duyuru Oluştur
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('create_announcement') }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Duyuru Başlığı</label>
+                        <input type="text" class="form-control" id="title" name="title" required placeholder="Duyuru başlığını girin...">
+                    </div>
+                    <div class="mb-3">
+                        <label for="content" class="form-label">Duyuru İçeriği</label>
+                        <textarea class="form-control" id="content" name="content" rows="6" required placeholder="Duyuru içeriğini girin..."></textarea>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>Bilgi:</strong> Duyuru oluşturulduktan sonra tüm kullanıcılar görebilecektir.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x me-2"></i>
+                        İptal
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check me-2"></i>
+                        Duyuru Oluştur
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

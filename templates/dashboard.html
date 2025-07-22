@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+
+{% block title %}Ana Sayfa{% endblock %}
+{% block page_title %}Ana Sayfa{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Welcome Section -->
+    <div class="col-12 mb-4">
+        <div class="alert alert-info border-0" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+            <h4 class="alert-heading">
+                <i class="bi bi-sun me-2"></i>
+                Hoş geldiniz, {{ session.first_name }}!
+            </h4>
+            <p class="mb-0">Plus Kitchen Portal'a hoş geldiniz. İşte güncel durumunuzun özeti:</p>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="col-md-4 mb-4">
+        <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+            <div class="stat-number">{{ total_users }}</div>
+            <div class="d-flex align-items-center">
+                <i class="bi bi-people me-2" style="font-size: 1.5rem;"></i>
+                <span>Toplam Kullanıcı</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+            <div class="stat-number">{{ total_announcements }}</div>
+            <div class="d-flex align-items-center">
+                <i class="bi bi-megaphone me-2" style="font-size: 1.5rem;"></i>
+                <span>Toplam Duyuru</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="stat-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+            <div class="stat-number">{{ unread_messages }}</div>
+            <div class="d-flex align-items-center">
+                <i class="bi bi-envelope me-2" style="font-size: 1.5rem;"></i>
+                <span>Okunmamış Mesaj</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Announcements -->
+    <div class="col-md-8 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-megaphone me-2 text-primary"></i>
+                    Son Duyurular
+                </h5>
+                <a href="{{ url_for('announcements') }}" class="btn btn-outline-primary btn-sm">
+                    Tümünü Gör
+                </a>
+            </div>
+            <div class="card-body">
+                {% if announcements %}
+                    {% for announcement in announcements %}
+                    <div class="d-flex align-items-start mb-3 {% if not loop.last %}border-bottom pb-3{% endif %}">
+                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; min-width: 40px;">
+                            <i class="bi bi-megaphone text-white"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">{{ announcement.title }}</h6>
+                            <p class="text-muted mb-1 small">{{ announcement.content[:100] }}{% if announcement.content|length > 100 %}...{% endif %}</p>
+                            <small class="text-muted">
+                                <i class="bi bi-person me-1"></i>{{ announcement.first_name }} {{ announcement.last_name }}
+                                <i class="bi bi-clock ms-3 me-1"></i>{{ announcement.created_at }}
+                            </small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-megaphone text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-2">Henüz duyuru bulunmuyor.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-lightning me-2 text-warning"></i>
+                    Hızlı İşlemler
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newAnnouncementModal">
+                        <i class="bi bi-megaphone me-2"></i>
+                        Yeni Duyuru
+                    </button>
+                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#newMessageModal">
+                        <i class="bi bi-chat-dots me-2"></i>
+                        Mesaj Gönder
+                    </button>
+                    <a href="{{ url_for('users') }}" class="btn btn-info">
+                        <i class="bi bi-people me-2"></i>
+                        Kullanıcıları Görüntüle
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Info -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-info-circle me-2 text-info"></i>
+                    Sistem Bilgisi
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="small">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Sistem:</span>
+                        <span class="text-muted">Plus Kitchen Portal</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Sürüm:</span>
+                        <span class="text-muted">v1.0.0</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Durum:</span>
+                        <span class="badge bg-success">Aktif</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- New Announcement Modal -->
+<div class="modal fade" id="newAnnouncementModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-megaphone me-2"></i>
+                    Yeni Duyuru Oluştur
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('create_announcement') }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Başlık</label>
+                        <input type="text" class="form-control" id="title" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="content" class="form-label">İçerik</label>
+                        <textarea class="form-control" id="content" name="content" rows="4" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check me-2"></i>
+                        Oluştur
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- New Message Modal -->
+<div class="modal fade" id="newMessageModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-chat-dots me-2"></i>
+                    Yeni Mesaj Gönder
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('send_message') }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="receiver_id" class="form-label">Alıcı</label>
+                        <select class="form-control" id="receiver_id" name="receiver_id" required>
+                            <option value="">Seçiniz...</option>
+                            <!-- Users will be loaded via JavaScript -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="subject" class="form-label">Konu</label>
+                        <input type="text" class="form-control" id="subject" name="subject">
+                    </div>
+                    <div class="mb-3">
+                        <label for="content" class="form-label">Mesaj</label>
+                        <textarea class="form-control" id="message_content" name="content" rows="4" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-send me-2"></i>
+                        Gönder
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Load users for message modal
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/api/messages/unread/count')
+        .then(response => response.json())
+        .then(data => {
+            // Already handled in base template
+        });
+});
+</script>
+{% endblock %} 
