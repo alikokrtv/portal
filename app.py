@@ -101,7 +101,7 @@ def dashboard():
     
     # Get upcoming birthdays (next 30 days)
     cursor.execute('''
-        SELECT u.first_name, u.last_name, u.birth_date, u.profile_picture,
+        SELECT u.first_name, u.last_name, u.birth_date,
                DATEDIFF(
                    DATE_ADD(MAKEDATE(YEAR(CURDATE()), 1), 
                    INTERVAL (DAYOFYEAR(u.birth_date) - 1) DAY),
@@ -121,7 +121,7 @@ def dashboard():
     
     # Get upcoming work anniversaries (next 30 days)
     cursor.execute('''
-        SELECT u.first_name, u.last_name, u.hire_date, u.profile_picture,
+        SELECT u.first_name, u.last_name, u.hire_date,
                YEAR(CURDATE()) - YEAR(u.hire_date) as years_of_service,
                DATEDIFF(
                    DATE_ADD(MAKEDATE(YEAR(CURDATE()), 1), 
@@ -326,7 +326,7 @@ def special_days():
     
     # All birthdays this month
     cursor.execute('''
-        SELECT u.first_name, u.last_name, u.birth_date, u.profile_picture,
+        SELECT u.first_name, u.last_name, u.birth_date,
                DAY(u.birth_date) as birth_day
         FROM users u 
         WHERE MONTH(u.birth_date) = MONTH(CURDATE())
@@ -336,7 +336,7 @@ def special_days():
     
     # All anniversaries this month
     cursor.execute('''
-        SELECT u.first_name, u.last_name, u.hire_date, u.profile_picture,
+        SELECT u.first_name, u.last_name, u.hire_date,
                DAY(u.hire_date) as hire_day,
                YEAR(CURDATE()) - YEAR(u.hire_date) as years_of_service
         FROM users u 
