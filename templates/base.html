@@ -562,9 +562,11 @@
                             <i class="bi bi-envelope me-2"></i>Mesaj Gönder
                         </a></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="{{ url_for('users') }}">
-                            <i class="bi bi-person-plus me-2"></i>Yeni Kullanıcı
+                        {% if session.is_admin %}
+                        <li><a class="dropdown-item" href="{{ url_for('personnel') }}">
+                            <i class="bi bi-person-plus me-2"></i>Yeni Personel
                         </a></li>
+                        {% endif %}
                     </ul>
                 </div>
                 
