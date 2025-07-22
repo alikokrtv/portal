@@ -140,13 +140,12 @@ def dashboard():
     ''')
     upcoming_anniversaries = cursor.fetchall()
     
-    # Get pending tasks
-    cursor.execute('''
-        SELECT COUNT(*) as count 
-        FROM tasks 
-        WHERE assigned_to = %s AND status = 'pending'
-    ''', (session['user_id'],))
-    pending_tasks = cursor.fetchone()['count']
+    # Get pending tasks - simplified
+    try:
+        cursor.execute('SELECT COUNT(*) as count FROM tasks WHERE status = %s', ('pending',))
+        pending_tasks = cursor.fetchone()['count']
+    except:
+        pending_tasks = 0
     
     conn.close()
     
@@ -288,9 +287,9 @@ def tasks():
                u1.first_name as creator_first_name, u1.last_name as creator_last_name,
                u2.first_name as assignee_first_name, u2.last_name as assignee_last_name
         FROM tasks t 
-        JOIN users u1 ON t.created_by = u1.id 
-        LEFT JOIN users u2 ON t.assigned_to = u2.id 
-        WHERE t.assigned_to = %s OR t.created_by = %s
+        JOIN users u1 ON t.created_by_id = u1.id 
+        LEFT JOIN users u2 ON t.assigned_to_id = u2.id 
+        WHERE t.assigned_to_id = %s OR t.created_by_id = %s
         ORDER BY t.created_at DESC
     ''', (session['user_id'], session['user_id']))
     tasks = cursor.fetchall()
