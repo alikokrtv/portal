@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block title %}Profil{% endblock %}
+{% block page_title %}Profil Yönetimi{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 120px; height: 120px;">
+                    <span class="text-white fw-bold" style="font-size: 3rem;">{{ user.first_name[0] }}{{ user.last_name[0] }}</span>
+                </div>
+                <h4 class="mb-2">{{ user.first_name }} {{ user.last_name }}</h4>
+                <p class="text-muted mb-3">@{{ user.username }}</p>
+                
+                <div class="mb-3">
+                    {% if user.department_name %}
+                        <span class="badge bg-primary">{{ user.department_name }}</span>
+                    {% endif %}
+                    {% if user.position %}
+                        <span class="badge bg-info">{{ user.position }}</span>
+                    {% endif %}
+                </div>
+                
+                <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                    <i class="bi bi-pencil me-2"></i>
+                    Profili Düzenle
+                </button>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Hesap Bilgileri
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <small class="text-muted">Kayıt Tarihi</small>
+                        <div class="fw-semibold">{{ user.created_at.strftime('%d/%m/%Y') if user.created_at else 'N/A' }}</div>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">Son Giriş</small>
+                        <div class="fw-semibold">{{ user.last_login.strftime('%d/%m/%Y') if user.last_login else 'İlk giriş' }}</div>
+                    </div>
+                </div>
+                
+                {% if user.birth_date %}
+                <hr class="my-3">
+                <div class="row">
+                    <div class="col-6">
+                        <small class="text-muted">Doğum Tarihi</small>
+                        <div class="fw-semibold">{{ user.birth_date.strftime('%d/%m/%Y') }}</div>
+                    </div>
+                    {% if user.hire_date %}
+                    <div class="col-6">
+                        <small class="text-muted">İşe Başlama</small>
+                        <div class="fw-semibold">{{ user.hire_date.strftime('%d/%m/%Y') }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-person-lines-fill me-2"></i>
+                    Kişisel Bilgiler
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Ad</label>
+                        <div class="form-control-plaintext fw-semibold">{{ user.first_name }}</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Soyad</label>
+                        <div class="form-control-plaintext fw-semibold">{{ user.last_name }}</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Email</label>
+                        <div class="form-control-plaintext">{{ user.email }}</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Telefon</label>
+                        <div class="form-control-plaintext">{{ user.phone or 'Belirtilmemiş' }}</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Departman</label>
+                        <div class="form-control-plaintext">{{ user.department_name or 'Atanmamış' }}</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Pozisyon</label>
+                        <div class="form-control-plaintext">{{ user.position or 'Belirtilmemiş' }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-shield-lock me-2"></i>
+                    Güvenlik
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1">Şifre</h6>
+                        <p class="text-muted mb-0">Son değiştirilme: 30 gün önce</p>
+                    </div>
+                    <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                        Şifreyi Değiştir
+                    </button>
+                </div>
+                
+                <hr class="my-3">
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1">İki Faktörlü Doğrulama</h6>
+                        <p class="text-muted mb-0">Hesabınız için ek güvenlik</p>
+                    </div>
+                    <span class="badge bg-secondary">Devre Dışı</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Profile Modal -->
+<div class="modal fade" id="editProfileModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-person-gear me-2"></i>
+                    Profili Düzenle
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="#">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editFirstName" class="form-label">Ad</label>
+                                <input type="text" class="form-control" id="editFirstName" name="first_name" value="{{ user.first_name }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editLastName" class="form-label">Soyad</label>
+                                <input type="text" class="form-control" id="editLastName" name="last_name" value="{{ user.last_name }}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editEmail" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="editEmail" name="email" value="{{ user.email }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editPhone" class="form-label">Telefon</label>
+                                <input type="text" class="form-control" id="editPhone" name="phone" value="{{ user.phone or '' }}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editBirthDate" class="form-label">Doğum Tarihi</label>
+                                <input type="date" class="form-control" id="editBirthDate" name="birth_date" value="{{ user.birth_date.strftime('%Y-%m-%d') if user.birth_date else '' }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editHireDate" class="form-label">İşe Başlama Tarihi</label>
+                                <input type="date" class="form-control" id="editHireDate" name="hire_date" value="{{ user.hire_date.strftime('%Y-%m-%d') if user.hire_date else '' }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check me-2"></i>
+                        Kaydet
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-shield-lock me-2"></i>
+                    Şifre Değiştir
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="#">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="currentPassword" class="form-label">Mevcut Şifre</label>
+                        <input type="password" class="form-control" id="currentPassword" name="current_password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newPassword" class="form-label">Yeni Şifre</label>
+                        <input type="password" class="form-control" id="newPassword" name="new_password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirmPassword" class="form-label">Yeni Şifre (Tekrar)</label>
+                        <input type="password" class="form-control" id="confirmPassword" name="confirm_password" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-shield-check me-2"></i>
+                        Şifreyi Değiştir
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

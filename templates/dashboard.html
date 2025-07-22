@@ -18,56 +18,57 @@
 
     <!-- Statistics Cards -->
     <div class="col-md-3 mb-4">
-        <div class="stat-card">
-            <div class="stat-number text-primary">{{ total_users }}</div>
+        <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+            <div class="stat-number">{{ total_users }}</div>
             <div class="d-flex align-items-center">
-                <i class="bi bi-people me-2 text-primary" style="font-size: 1.5rem;"></i>
-                <span class="stat-label">Toplam Personel</span>
+                <i class="bi bi-people me-2" style="font-size: 1.5rem;"></i>
+                <span class="stat-label" style="color: rgba(255,255,255,0.9);">Toplam Personel</span>
             </div>
         </div>
     </div>
 
     <div class="col-md-3 mb-4">
-        <div class="stat-card">
-            <div class="stat-number text-success">{{ total_departments }}</div>
+        <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+            <div class="stat-number">{{ total_departments }}</div>
             <div class="d-flex align-items-center">
-                <i class="bi bi-building me-2 text-success" style="font-size: 1.5rem;"></i>
-                <span class="stat-label">Departman</span>
+                <i class="bi bi-building me-2" style="font-size: 1.5rem;"></i>
+                <span class="stat-label" style="color: rgba(255,255,255,0.9);">Departman</span>
             </div>
         </div>
     </div>
 
     <div class="col-md-3 mb-4">
-        <div class="stat-card">
-            <div class="stat-number text-info">{{ total_announcements }}</div>
+        <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+            <div class="stat-number">{{ total_announcements }}</div>
             <div class="d-flex align-items-center">
-                <i class="bi bi-megaphone me-2 text-info" style="font-size: 1.5rem;"></i>
-                <span class="stat-label">Duyuru</span>
+                <i class="bi bi-megaphone me-2" style="font-size: 1.5rem;"></i>
+                <span class="stat-label" style="color: rgba(255,255,255,0.9);">Duyuru</span>
             </div>
         </div>
     </div>
 
     <div class="col-md-3 mb-4">
-        <div class="stat-card">
-            <div class="stat-number text-warning">{{ unread_messages }}</div>
+        <div class="stat-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white;">
+            <div class="stat-number">{{ unread_messages }}</div>
             <div class="d-flex align-items-center">
-                <i class="bi bi-envelope me-2 text-warning" style="font-size: 1.5rem;"></i>
-                <span class="stat-label">Okunmamış Mesaj</span>
+                <i class="bi bi-envelope me-2" style="font-size: 1.5rem;"></i>
+                <span class="stat-label" style="color: rgba(255,255,255,0.9);">Okunmamış Mesaj</span>
             </div>
         </div>
     </div>
 </div>
 
 <div class="row">
-    <!-- Recent Announcements -->
-    <div class="col-md-8 mb-4">
-        <div class="card">
+    <!-- Recent Announcements - Center -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">
                     <i class="bi bi-megaphone me-2 text-primary"></i>
                     Son Duyurular
                 </h5>
                 <a href="{{ url_for('announcements') }}" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-arrow-right me-1"></i>
                     Tümünü Gör
                 </a>
             </div>
@@ -79,55 +80,63 @@
                             <i class="bi bi-megaphone text-white"></i>
                         </div>
                         <div class="flex-grow-1">
-                            <h6 class="mb-1">{{ announcement.title }}</h6>
-                            <p class="text-muted mb-1 small">{{ announcement.content[:100] }}{% if announcement.content|length > 100 %}...{% endif %}</p>
-                            <small class="text-muted">
-                                <i class="bi bi-person me-1"></i>{{ announcement.first_name }} {{ announcement.last_name }}
-                                <i class="bi bi-clock ms-3 me-1"></i>{{ announcement.created_at }}
-                            </small>
+                            <h6 class="mb-1 fw-semibold">{{ announcement.title }}</h6>
+                            <p class="text-muted mb-2 small">{{ announcement.content[:150] }}{% if announcement.content|length > 150 %}...{% endif %}</p>
+                            <div class="d-flex align-items-center text-muted small">
+                                <i class="bi bi-person me-1"></i>
+                                <span class="me-3">{{ announcement.first_name }} {{ announcement.last_name }}</span>
+                                <i class="bi bi-clock me-1"></i>
+                                <span>{{ announcement.created_at.strftime('%d/%m/%Y %H:%M') if announcement.created_at else 'N/A' }}</span>
+                            </div>
                         </div>
                     </div>
                     {% endfor %}
                 {% else %}
-                    <div class="text-center py-4">
+                    <div class="text-center py-5">
                         <i class="bi bi-megaphone text-muted" style="font-size: 3rem;"></i>
-                        <p class="text-muted mt-2">Henüz duyuru bulunmuyor.</p>
+                        <h6 class="mt-3 text-muted">Henüz duyuru bulunmuyor</h6>
+                        <p class="text-muted">İlk duyuruyu oluşturmak için yukarıdaki butonu kullanın.</p>
                     </div>
                 {% endif %}
             </div>
         </div>
     </div>
 
-    <!-- Upcoming Birthdays -->
-    <div class="col-md-4 mb-4">
-        <div class="card">
+    <!-- Right Side Column -->
+    <div class="col-md-6">
+        <!-- Upcoming Birthdays -->
+        <div class="card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">
-                    <i class="bi bi-gift me-2 text-primary"></i>
+                <h6 class="mb-0">
+                    <i class="bi bi-gift me-2 text-success"></i>
                     Yaklaşan Doğum Günleri
-                </h5>
-                <a href="{{ url_for('special_days') }}" class="btn btn-outline-primary btn-sm">
-                    Tümünü Gör
+                </h6>
+                <a href="{{ url_for('special_days') }}" class="btn btn-outline-success btn-sm">
+                    <i class="bi bi-calendar me-1"></i>
+                    Tümü
                 </a>
             </div>
             <div class="card-body">
                 {% if upcoming_birthdays %}
                     {% for birthday in upcoming_birthdays %}
                     <div class="d-flex align-items-center mb-3 {% if not loop.last %}border-bottom pb-3{% endif %}">
-                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; min-width: 40px;">
-                            <i class="bi bi-person text-white"></i>
+                        <div class="bg-success rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; min-width: 40px;">
+                            <i class="bi bi-gift text-white"></i>
                         </div>
                         <div class="flex-grow-1">
-                            <h6 class="mb-1">{{ birthday.first_name }} {{ birthday.last_name }}</h6>
+                            <h6 class="mb-1 fw-semibold">{{ birthday.first_name }} {{ birthday.last_name }}</h6>
                             <small class="text-muted">
                                 <i class="bi bi-calendar me-1"></i>
                                 {% if birthday.days_until_birthday == 0 %}
-                                    Bugün! 🎉
+                                    <span class="text-success fw-bold">Bugün! 🎉</span>
                                 {% elif birthday.days_until_birthday == 1 %}
-                                    Yarın
+                                    <span class="text-warning fw-bold">Yarın</span>
                                 {% else %}
                                     {{ birthday.days_until_birthday }} gün sonra
                                 {% endif %}
+                                <br>
+                                <i class="bi bi-cake me-1"></i>
+                                {{ birthday.birth_date.strftime('%d %B') if birthday.birth_date else 'N/A' }}
                             </small>
                         </div>
                     </div>
@@ -135,46 +144,46 @@
                 {% else %}
                     <div class="text-center py-3">
                         <i class="bi bi-gift text-muted" style="font-size: 2rem;"></i>
-                        <p class="text-muted mt-2 mb-0">Yaklaşan doğum günü yok</p>
+                        <p class="text-muted mt-2 mb-0 small">Yaklaşan doğum günü yok</p>
                     </div>
                 {% endif %}
             </div>
         </div>
-    </div>
-</div>
 
-<div class="row">
-    <!-- Work Anniversaries -->
-    <div class="col-md-4 mb-4">
+        <!-- Work Anniversaries -->
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">
-                    <i class="bi bi-award me-2 text-success"></i>
-                    Yaklaşan Yıl Dönümleri
-                </h5>
-                <a href="{{ url_for('special_days') }}" class="btn btn-outline-success btn-sm">
-                    Tümünü Gör
+                <h6 class="mb-0">
+                    <i class="bi bi-award me-2 text-warning"></i>
+                    Yaklaşan İş Yıl Dönümleri
+                </h6>
+                <a href="{{ url_for('special_days') }}" class="btn btn-outline-warning btn-sm">
+                    <i class="bi bi-calendar me-1"></i>
+                    Tümü
                 </a>
             </div>
             <div class="card-body">
                 {% if upcoming_anniversaries %}
                     {% for anniversary in upcoming_anniversaries %}
                     <div class="d-flex align-items-center mb-3 {% if not loop.last %}border-bottom pb-3{% endif %}">
-                        <div class="bg-success rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; min-width: 40px;">
-                            <i class="bi bi-award text-white"></i>
+                        <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; min-width: 40px;">
+                            <span class="text-white fw-bold small">{{ anniversary.years_of_service }}</span>
                         </div>
                         <div class="flex-grow-1">
-                            <h6 class="mb-1">{{ anniversary.first_name }} {{ anniversary.last_name }}</h6>
+                            <h6 class="mb-1 fw-semibold">{{ anniversary.first_name }} {{ anniversary.last_name }}</h6>
                             <small class="text-muted">
+                                <i class="bi bi-briefcase me-1"></i>
+                                <span class="fw-semibold text-warning">{{ anniversary.years_of_service }} yıl</span> hizmet
+                                <br>
                                 <i class="bi bi-calendar-check me-1"></i>
-                                {{ anniversary.years_of_service }} yıl - 
                                 {% if anniversary.days_until_anniversary == 0 %}
-                                    Bugün! 🎊
+                                    <span class="text-warning fw-bold">Bugün! 🎊</span>
                                 {% elif anniversary.days_until_anniversary == 1 %}
-                                    Yarın
+                                    <span class="text-info fw-bold">Yarın</span>
                                 {% else %}
                                     {{ anniversary.days_until_anniversary }} gün sonra
                                 {% endif %}
+                                - {{ anniversary.hire_date.strftime('%d %B %Y') if anniversary.hire_date else 'N/A' }}
                             </small>
                         </div>
                     </div>
@@ -182,15 +191,74 @@
                 {% else %}
                     <div class="text-center py-3">
                         <i class="bi bi-award text-muted" style="font-size: 2rem;"></i>
-                        <p class="text-muted mt-2 mb-0">Yaklaşan yıl dönümü yok</p>
+                        <p class="text-muted mt-2 mb-0 small">Yaklaşan yıl dönümü yok</p>
                     </div>
                 {% endif %}
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Quick Actions -->
-    <div class="col-md-4 mb-4">
+<!-- Department Overview -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-building me-2 text-info"></i>
+                    Departman Durumu
+                </h5>
+                <a href="{{ url_for('departments') }}" class="btn btn-outline-info btn-sm">
+                    <i class="bi bi-arrow-right me-1"></i>
+                    Departman Yönetimi
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="d-flex align-items-center p-3 bg-light rounded">
+                            <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                <i class="bi bi-people text-white"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1 fw-semibold">Toplam Çalışan</h6>
+                                <span class="h4 text-primary mb-0">{{ total_users }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <div class="d-flex align-items-center p-3 bg-light rounded">
+                            <div class="bg-success rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                <i class="bi bi-building text-white"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1 fw-semibold">Aktif Departman</h6>
+                                <span class="h4 text-success mb-0">{{ total_departments }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <div class="d-flex align-items-center p-3 bg-light rounded">
+                            <div class="bg-info rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                <i class="bi bi-check-square text-white"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1 fw-semibold">Bekleyen Görev</h6>
+                                <span class="h4 text-info mb-0">{{ pending_tasks }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mt-4">
+    <div class="col-12">
         <div class="card">
             <div class="card-header">
                 <h5 class="mb-0">
@@ -199,63 +267,34 @@
                 </h5>
             </div>
             <div class="card-body">
-                <div class="d-grid gap-2">
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newAnnouncementModal">
-                        <i class="bi bi-megaphone me-2"></i>
-                        Yeni Duyuru
-                    </button>
-                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#newMessageModal">
-                        <i class="bi bi-chat-dots me-2"></i>
-                        Mesaj Gönder
-                    </button>
-                    <a href="{{ url_for('personnel') }}" class="btn btn-info">
-                        <i class="bi bi-people me-2"></i>
-                        Personel Yönetimi
-                    </a>
-                    <a href="{{ url_for('departments') }}" class="btn btn-warning">
-                        <i class="bi bi-building me-2"></i>
-                        Departman Yönetimi
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Quick Tasks Info -->
-    <div class="col-md-4 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="bi bi-check-square me-2 text-info"></i>
-                    Görev Durumu
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span>Bekleyen Görevler</span>
-                    <span class="badge bg-warning text-dark">{{ pending_tasks }}</span>
-                </div>
-                <div class="d-grid">
-                    <a href="{{ url_for('tasks') }}" class="btn btn-outline-primary">
-                        <i class="bi bi-list-task me-2"></i>
-                        Tüm Görevleri Görüntüle
-                    </a>
-                </div>
-                
-                <hr class="my-3">
-                
-                <div class="small">
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>Sistem:</span>
-                        <span class="text-muted">Plus Kitchen Portal</span>
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <button class="btn btn-primary w-100 py-3" data-bs-toggle="modal" data-bs-target="#newAnnouncementModal">
+                            <i class="bi bi-megaphone mb-2" style="font-size: 1.5rem;"></i>
+                            <br>
+                            <span>Yeni Duyuru</span>
+                        </button>
                     </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>Sürüm:</span>
-                        <span class="text-muted">v2.0.0</span>
+                    <div class="col-md-3 mb-3">
+                        <button class="btn btn-success w-100 py-3" data-bs-toggle="modal" data-bs-target="#newMessageModal">
+                            <i class="bi bi-chat-dots mb-2" style="font-size: 1.5rem;"></i>
+                            <br>
+                            <span>Mesaj Gönder</span>
+                        </button>
                     </div>
-                    <div class="d-flex justify-content-between">
-                        <span>Durum:</span>
-                        <span class="badge bg-success">Aktif</span>
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('personnel') }}" class="btn btn-info w-100 py-3">
+                            <i class="bi bi-people mb-2" style="font-size: 1.5rem;"></i>
+                            <br>
+                            <span>Personel Yönetimi</span>
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('departments') }}" class="btn btn-warning w-100 py-3">
+                            <i class="bi bi-building mb-2" style="font-size: 1.5rem;"></i>
+                            <br>
+                            <span>Departman Yönetimi</span>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -343,11 +382,20 @@
 <script>
 // Load users for message modal
 document.addEventListener('DOMContentLoaded', function() {
-    fetch('/api/messages/unread/count')
+    fetch('/api/users')
         .then(response => response.json())
         .then(data => {
-            // Already handled in base template
-        });
+            const select = document.getElementById('receiver_id');
+            if (data.users && select) {
+                data.users.forEach(user => {
+                    const option = document.createElement('option');
+                    option.value = user.id;
+                    option.textContent = `${user.first_name} ${user.last_name} (${user.username})`;
+                    select.appendChild(option);
+                });
+            }
+        })
+        .catch(error => console.log('Error loading users:', error));
 });
 </script>
 {% endblock %} 

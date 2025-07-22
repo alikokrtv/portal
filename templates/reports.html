@@ -1,0 +1,448 @@
+{% extends "base.html" %}
+
+{% block title %}Raporlar{% endblock %}
+{% block page_title %}Raporlar ve Analizler{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2 class="h4 mb-0">Sistem Raporları</h2>
+            <div class="d-flex gap-2">
+                <select class="form-control" style="width: 150px;">
+                    <option>Son 30 gün</option>
+                    <option>Son 7 gün</option>
+                    <option>Bu ay</option>
+                    <option>Bu yıl</option>
+                </select>
+                <button class="btn btn-primary">
+                    <i class="bi bi-download me-2"></i>
+                    Rapor İndir
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Key Metrics -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <div class="text-primary mb-2">
+                    <i class="bi bi-person-plus" style="font-size: 2rem;"></i>
+                </div>
+                <h3 class="mb-1">{{ new_users_month }}</h3>
+                <p class="text-muted mb-0">Yeni Kullanıcı (30 gün)</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <div class="text-success mb-2">
+                    <i class="bi bi-chat-dots" style="font-size: 2rem;"></i>
+                </div>
+                <h3 class="mb-1">{{ messages_week }}</h3>
+                <p class="text-muted mb-0">Mesaj (7 gün)</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <div class="text-info mb-2">
+                    <i class="bi bi-building" style="font-size: 2rem;"></i>
+                </div>
+                <h3 class="mb-1">{{ dept_stats|length }}</h3>
+                <p class="text-muted mb-0">Aktif Departman</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <div class="text-warning mb-2">
+                    <i class="bi bi-check-square" style="font-size: 2rem;"></i>
+                </div>
+                <h3 class="mb-1">
+                    {% set total_tasks = 0 %}
+                    {% for task in task_stats %}
+                        {% set total_tasks = total_tasks + task.count %}
+                    {% endfor %}
+                    {{ total_tasks }}
+                </h3>
+                <p class="text-muted mb-0">Toplam Görev</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Department Analysis -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-building me-2"></i>
+                    Departman Dağılımı
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if dept_stats %}
+                    {% for dept in dept_stats %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h6 class="mb-1">{{ dept.name }}</h6>
+                            <small class="text-muted">{{ dept.user_count }} çalışan</small>
+                        </div>
+                        <div class="text-end">
+                            {% set max_users = dept_stats[0].user_count %}
+                            {% set percentage = (dept.user_count / max_users * 100) if max_users > 0 else 0 %}
+                            <div class="progress" style="width: 100px; height: 8px;">
+                                <div class="progress-bar bg-primary" style="width: {{ percentage }}%"></div>
+                            </div>
+                            <small class="text-muted">{{ "%.1f"|format(percentage) }}%</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-building text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-2">Departman verisi bulunamadı</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Task Status Analysis -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-check-square me-2"></i>
+                    Görev Durumu
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if task_stats %}
+                    {% for task in task_stats %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h6 class="mb-1">
+                                {% if task.status == 'pending' %}
+                                    <span class="badge bg-warning text-dark">Beklemede</span>
+                                {% elif task.status == 'in_progress' %}
+                                    <span class="badge bg-info">Devam Ediyor</span>
+                                {% elif task.status == 'completed' %}
+                                    <span class="badge bg-success">Tamamlandı</span>
+                                {% elif task.status == 'cancelled' %}
+                                    <span class="badge bg-secondary">İptal</span>
+                                {% else %}
+                                    <span class="badge bg-light text-dark">{{ task.status }}</span>
+                                {% endif %}
+                            </h6>
+                            <small class="text-muted">{{ task.count }} görev</small>
+                        </div>
+                        <div class="text-end">
+                            {% set max_tasks = task_stats[0].count %}
+                            {% set percentage = (task.count / max_tasks * 100) if max_tasks > 0 else 0 %}
+                            <div class="progress" style="width: 100px; height: 8px;">
+                                {% if task.status == 'pending' %}
+                                    <div class="progress-bar bg-warning" style="width: {{ percentage }}%"></div>
+                                {% elif task.status == 'in_progress' %}
+                                    <div class="progress-bar bg-info" style="width: {{ percentage }}%"></div>
+                                {% elif task.status == 'completed' %}
+                                    <div class="progress-bar bg-success" style="width: {{ percentage }}%"></div>
+                                {% else %}
+                                    <div class="progress-bar bg-secondary" style="width: {{ percentage }}%"></div>
+                                {% endif %}
+                            </div>
+                            <small class="text-muted">{{ "%.1f"|format(percentage) }}%</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-check-square text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-2">Görev verisi bulunamadı</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Reports -->
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-calendar me-2"></i>
+                    Aylık Trend
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="text-center">
+                    <canvas id="monthlyTrendChart" width="100" height="60"></canvas>
+                </div>
+                <div class="mt-3">
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Bu ay:</span>
+                        <span class="fw-semibold text-success">+{{ new_users_month }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Geçen ay:</span>
+                        <span class="fw-semibold">{{ (new_users_month * 0.8)|round|int }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Değişim:</span>
+                        <span class="fw-semibold text-success">+25%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-clock me-2"></i>
+                    Aktivite Saatleri
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>09:00 - 12:00</span>
+                        <span class="badge bg-success">Yoğun</span>
+                    </div>
+                    <div class="progress mt-1" style="height: 6px;">
+                        <div class="progress-bar bg-success" style="width: 85%"></div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>12:00 - 14:00</span>
+                        <span class="badge bg-warning text-dark">Orta</span>
+                    </div>
+                    <div class="progress mt-1" style="height: 6px;">
+                        <div class="progress-bar bg-warning" style="width: 60%"></div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>14:00 - 18:00</span>
+                        <span class="badge bg-info">Aktif</span>
+                    </div>
+                    <div class="progress mt-1" style="height: 6px;">
+                        <div class="progress-bar bg-info" style="width: 90%"></div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>18:00 - 21:00</span>
+                        <span class="badge bg-secondary">Düşük</span>
+                    </div>
+                    <div class="progress mt-1" style="height: 6px;">
+                        <div class="progress-bar bg-secondary" style="width: 25%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-trophy me-2"></i>
+                    En Aktif Kullanıcılar
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px;">
+                        <span class="text-white fw-bold small">1</span>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="fw-semibold">{{ session.first_name or 'Admin' }} {{ session.last_name or 'User' }}</div>
+                        <small class="text-muted">127 aktivite</small>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center mb-3">
+                    <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px;">
+                        <span class="text-white fw-bold small">2</span>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="fw-semibold">Ahmet Yılmaz</div>
+                        <small class="text-muted">98 aktivite</small>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center mb-3">
+                    <div class="bg-info rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px;">
+                        <span class="text-white fw-bold small">3</span>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="fw-semibold">Zeynep Demir</div>
+                        <small class="text-muted">87 aktivite</small>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('personnel') }}" class="btn btn-outline-primary btn-sm">
+                        Tüm Personeli Gör
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Export Section -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-download me-2"></i>
+                    Rapor Dışa Aktarma
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Kullanılabilir Raporlar</h6>
+                        <div class="list-group">
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">Kullanıcı Listesi</h6>
+                                    <p class="mb-1">Tüm kullanıcılar ve detayları</p>
+                                </div>
+                                <button class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-download"></i>
+                                </button>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">Departman Raporu</h6>
+                                    <p class="mb-1">Departman bazlı istatistikler</p>
+                                </div>
+                                <button class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-download"></i>
+                                </button>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">Aktivite Raporu</h6>
+                                    <p class="mb-1">Kullanıcı aktivite detayları</p>
+                                </div>
+                                <button class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-download"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Özel Rapor Oluştur</h6>
+                        <form>
+                            <div class="mb-3">
+                                <label class="form-label">Rapor Türü</label>
+                                <select class="form-control">
+                                    <option>Kullanıcı Raporu</option>
+                                    <option>Departman Raporu</option>
+                                    <option>Aktivite Raporu</option>
+                                    <option>Mesaj Raporu</option>
+                                </select>
+                            </div>
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Başlangıç</label>
+                                        <input type="date" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Bitiş</label>
+                                        <input type="date" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Format</label>
+                                <div class="d-flex gap-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="format" id="excelFormat" checked>
+                                        <label class="form-check-label" for="excelFormat">
+                                            Excel (.xlsx)
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="format" id="pdfFormat">
+                                        <label class="form-check-label" for="pdfFormat">
+                                            PDF
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="format" id="csvFormat">
+                                        <label class="form-check-label" for="csvFormat">
+                                            CSV
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-download me-2"></i>
+                                Rapor Oluştur
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Simple chart placeholder - you can integrate Chart.js here
+document.addEventListener('DOMContentLoaded', function() {
+    const canvas = document.getElementById('monthlyTrendChart');
+    if (canvas) {
+        const ctx = canvas.getContext('2d');
+        
+        // Simple line chart placeholder
+        ctx.strokeStyle = '#007bff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        
+        const points = [
+            [10, 50], [30, 30], [50, 40], [70, 20], [90, 10]
+        ];
+        
+        points.forEach((point, index) => {
+            if (index === 0) {
+                ctx.moveTo(point[0], point[1]);
+            } else {
+                ctx.lineTo(point[0], point[1]);
+            }
+        });
+        
+        ctx.stroke();
+        
+        // Add points
+        ctx.fillStyle = '#007bff';
+        points.forEach(point => {
+            ctx.beginPath();
+            ctx.arc(point[0], point[1], 3, 0, 2 * Math.PI);
+            ctx.fill();
+        });
+    }
+});
+</script>
+{% endblock %} 

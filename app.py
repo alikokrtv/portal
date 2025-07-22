@@ -3,17 +3,22 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import pymysql
 import os
 from datetime import datetime, timedelta
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = 'plus-kitchen-secret-key-2024'
+app.secret_key = os.environ.get('SECRET_KEY', 'plus-kitchen-secret-key-2024')
 
-# MySQL Configuration
+# MySQL Configuration - Production Ready
 MYSQL_CONFIG = {
-    'host': 'localhost',
-    'user': 'root',
-    'password': '255223Rtv',
-    'database': 'corporate_communicator',
-    'charset': 'utf8mb4'
+    'host': os.environ.get('DB_HOST', 'localhost'),
+    'user': os.environ.get('DB_USER', 'root'),
+    'password': os.environ.get('DB_PASSWORD', '255223Rtv'),
+    'database': os.environ.get('DB_NAME', 'corporate_communicator'),
+    'charset': 'utf8mb4',
+    'port': int(os.environ.get('DB_PORT', 3306))
 }
 
 # Database connection
@@ -346,6 +351,140 @@ def special_days():
                          birthdays=birthdays_this_month,
                          anniversaries=anniversaries_this_month)
 
+@app.route('/users')
+@require_login
+def users():
+    conn = get_db_connection()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    cursor.execute('''
+        SELECT u.*, d.name as department_name 
+        FROM users u 
+        LEFT JOIN departments d ON u.department_id = d.id 
+        ORDER BY u.created_at DESC
+    ''')
+    users = cursor.fetchall()
+    
+    cursor.execute('SELECT * FROM departments ORDER BY name')
+    departments = cursor.fetchall()
+    
+    conn.close()
+    
+    return render_template('users.html', users=users, departments=departments)
+
+@app.route('/users/create', methods=['POST'])
+@require_login
+def create_user():
+    first_name = request.form['first_name']
+    last_name = request.form['last_name']
+    username = request.form['username']
+    email = request.form['email']
+    password = request.form['password']
+    department_id = request.form.get('department_id')
+    position = request.form.get('position')
+    
+    # Hash password
+    hashed_password = generate_password_hash(password)
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute('''
+            INSERT INTO users (first_name, last_name, username, email, password, department_id, position, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, NOW())
+        ''', (first_name, last_name, username, email, hashed_password, department_id, position))
+        conn.commit()
+        flash('Kullanıcı başarıyla oluşturuldu!', 'success')
+    except pymysql.IntegrityError:
+        flash('Bu kullanıcı adı veya email zaten kullanımda!', 'error')
+    except Exception as e:
+        flash(f'Hata: {str(e)}', 'error')
+    finally:
+        conn.close()
+    
+    return redirect(url_for('users'))
+
+@app.route('/departments/create', methods=['POST'])
+@require_login
+def create_department():
+    name = request.form['name']
+    description = request.form.get('description', '')
+    manager_id = request.form.get('manager_id')
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute('''
+            INSERT INTO departments (name, description, manager_id)
+            VALUES (%s, %s, %s)
+        ''', (name, description, manager_id if manager_id else None))
+        conn.commit()
+        flash('Departman başarıyla oluşturuldu!', 'success')
+    except Exception as e:
+        flash(f'Hata: {str(e)}', 'error')
+    finally:
+        conn.close()
+    
+    return redirect(url_for('departments'))
+
+@app.route('/profile')
+@require_login
+def profile():
+    conn = get_db_connection()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    cursor.execute('''
+        SELECT u.*, d.name as department_name 
+        FROM users u 
+        LEFT JOIN departments d ON u.department_id = d.id 
+        WHERE u.id = %s
+    ''', (session['user_id'],))
+    user = cursor.fetchone()
+    conn.close()
+    
+    return render_template('profile.html', user=user)
+
+@app.route('/settings')
+@require_login
+def settings():
+    return render_template('settings.html')
+
+@app.route('/reports')
+@require_login
+def reports():
+    conn = get_db_connection()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    
+    # User statistics
+    cursor.execute('SELECT COUNT(*) as count FROM users WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)')
+    new_users_month = cursor.fetchone()['count']
+    
+    # Department statistics
+    cursor.execute('''
+        SELECT d.name, COUNT(u.id) as user_count 
+        FROM departments d 
+        LEFT JOIN users u ON d.id = u.department_id 
+        GROUP BY d.id, d.name 
+        ORDER BY user_count DESC
+    ''')
+    dept_stats = cursor.fetchall()
+    
+    # Message statistics
+    cursor.execute('SELECT COUNT(*) as count FROM messages WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)')
+    messages_week = cursor.fetchone()['count']
+    
+    # Task statistics
+    cursor.execute('SELECT status, COUNT(*) as count FROM tasks GROUP BY status')
+    task_stats = cursor.fetchall()
+    
+    conn.close()
+    
+    return render_template('reports.html', 
+                         new_users_month=new_users_month,
+                         dept_stats=dept_stats,
+                         messages_week=messages_week,
+                         task_stats=task_stats)
+
 # API Endpoints
 @app.route('/api/messages/unread/count')
 @require_login
@@ -409,4 +548,8 @@ def api_departments():
     return jsonify({'departments': departments})
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=6600) 
+    app.run(
+        debug=os.environ.get('FLASK_DEBUG', 'False').lower() == 'true',
+        host=os.environ.get('HOST', '0.0.0.0'),
+        port=int(os.environ.get('PORT', 6600))
+    ) 

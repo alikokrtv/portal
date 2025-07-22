@@ -31,8 +31,8 @@
                     <p class="text-muted mb-2">{{ '@' + user.username }}</p>
                     
                     <div class="mb-3">
-                        {% if user.department %}
-                            <span class="badge bg-secondary">{{ user.department }}</span>
+                        {% if user.department_name %}
+                            <span class="badge bg-secondary">{{ user.department_name }}</span>
                         {% endif %}
                         {% if user.position %}
                             <span class="badge bg-info">{{ user.position }}</span>
@@ -46,7 +46,7 @@
                         </div>
                         <div class="d-flex justify-content-between mb-1">
                             <span><i class="bi bi-calendar me-1"></i>Kayıt:</span>
-                            <span class="text-muted">{{ user.created_at }}</span>
+                            <span class="text-muted">{{ user.created_at.strftime('%d/%m/%Y') if user.created_at else 'N/A' }}</span>
                         </div>
                     </div>
                 </div>
@@ -92,7 +92,7 @@
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="#">
+            <form method="POST" action="{{ url_for('create_user') }}">
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-6">
@@ -125,8 +125,13 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="department" class="form-label">Departman</label>
-                                <input type="text" class="form-control" id="department" name="department">
+                                <label for="departmentSelect" class="form-label">Departman</label>
+                                <select class="form-control" id="departmentSelect" name="department_id">
+                                    <option value="">Seçiniz...</option>
+                                    {% for dept in departments %}
+                                        <option value="{{ dept.id }}">{{ dept.name }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
                         </div>
                         <div class="col-md-6">
