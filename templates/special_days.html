@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block title %}Özel Günler{% endblock %}
+{% block page_title %}Özel Günler{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="h4 mb-0">Özel Günler</h2>
+        <p class="text-muted mb-0">Bu ay kutlanacak doğum günleri ve iş yıl dönümleri</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-outline-primary" onclick="showBirthdays()">
+            <i class="bi bi-gift me-2"></i>
+            Doğum Günleri
+        </button>
+        <button class="btn btn-outline-success" onclick="showAnniversaries()">
+            <i class="bi bi-award me-2"></i>
+            Yıl Dönümleri
+        </button>
+        <button class="btn btn-primary" onclick="showAll()">
+            <i class="bi bi-calendar-heart me-2"></i>
+            Tümü
+        </button>
+    </div>
+</div>
+
+<!-- Month Navigation -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="bi bi-calendar-month me-2"></i>
+                {{ moment().format('MMMM YYYY') if moment else 'Bu Ay' }}
+            </h5>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-chevron-left"></i>
+                    Önceki Ay
+                </button>
+                <button class="btn btn-outline-secondary btn-sm">
+                    Bugün
+                </button>
+                <button class="btn btn-outline-secondary btn-sm">
+                    Sonraki Ay
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Birthdays Section -->
+    <div class="col-lg-6 mb-4" id="birthdaysSection">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-gift me-2 text-primary"></i>
+                    Bu Ay Doğum Günleri
+                </h5>
+                <span class="badge bg-primary">{{ birthdays|length }} kişi</span>
+            </div>
+            <div class="card-body">
+                {% if birthdays %}
+                    <div class="space-y-3">
+                        {% for birthday in birthdays %}
+                        <div class="d-flex align-items-center p-3 border rounded bg-light">
+                            <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                 style="width: 50px; height: 50px;">
+                                {% if birthday.profile_picture %}
+                                    <img src="{{ birthday.profile_picture }}" alt="{{ birthday.first_name }}" 
+                                         style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
+                                {% else %}
+                                    <span class="text-white fw-bold">
+                                        {{ birthday.first_name[0] }}{{ birthday.last_name[0] }}
+                                    </span>
+                                {% endif %}
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">{{ birthday.first_name }} {{ birthday.last_name }}</h6>
+                                <div class="d-flex align-items-center text-muted small">
+                                    <i class="bi bi-calendar-date me-1"></i>
+                                    <span>{{ birthday.birth_day }} {{ moment().format('MMMM') if moment else 'Bu Ay' }}</span>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                     style="width: 30px; height: 30px;">
+                                    <span class="small fw-bold">{{ birthday.birth_day }}</span>
+                                </div>
+                                <small class="text-muted">Gün</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-gift text-muted" style="font-size: 3rem;"></i>
+                        <h5 class="mt-3 text-muted">Bu ay doğum günü yok</h5>
+                        <p class="text-muted">Bu ay kutlanacak doğum günü bulunmuyor.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Work Anniversaries Section -->
+    <div class="col-lg-6 mb-4" id="anniversariesSection">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-award me-2 text-success"></i>
+                    Bu Ay İş Yıl Dönümleri
+                </h5>
+                <span class="badge bg-success">{{ anniversaries|length }} kişi</span>
+            </div>
+            <div class="card-body">
+                {% if anniversaries %}
+                    <div class="space-y-3">
+                        {% for anniversary in anniversaries %}
+                        <div class="d-flex align-items-center p-3 border rounded bg-light">
+                            <div class="bg-success rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                 style="width: 50px; height: 50px;">
+                                {% if anniversary.profile_picture %}
+                                    <img src="{{ anniversary.profile_picture }}" alt="{{ anniversary.first_name }}" 
+                                         style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
+                                {% else %}
+                                    <span class="text-white fw-bold">
+                                        {{ anniversary.first_name[0] }}{{ anniversary.last_name[0] }}
+                                    </span>
+                                {% endif %}
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">{{ anniversary.first_name }} {{ anniversary.last_name }}</h6>
+                                <div class="d-flex align-items-center text-muted small mb-1">
+                                    <i class="bi bi-calendar-check me-1"></i>
+                                    <span>{{ anniversary.hire_day }} {{ moment().format('MMMM') if moment else 'Bu Ay' }}</span>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-success">{{ anniversary.years_of_service }} Yıl</span>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                     style="width: 30px; height: 30px;">
+                                    <span class="small fw-bold">{{ anniversary.hire_day }}</span>
+                                </div>
+                                <small class="text-muted">Gün</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-award text-muted" style="font-size: 3rem;"></i>
+                        <h5 class="mt-3 text-muted">Bu ay yıl dönümü yok</h5>
+                        <p class="text-muted">Bu ay kutlanacak iş yıl dönümü bulunmuyor.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Calendar View (Optional) -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="bi bi-calendar3 me-2"></i>
+            Aylık Takvim Görünümü
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>
+            <strong>Geliştirilecek:</strong> Bu bölümde interaktif takvim görünümü yer alacak.
+            Şimdilik yukarıdaki liste görünümünü kullanabilirsiniz.
+        </div>
+        
+        <!-- Quick Stats -->
+        <div class="row">
+            <div class="col-md-4">
+                <div class="text-center p-3 border rounded">
+                    <div class="h3 text-primary mb-1">{{ birthdays|length }}</div>
+                    <div class="text-muted">Doğum Günü</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center p-3 border rounded">
+                    <div class="h3 text-success mb-1">{{ anniversaries|length }}</div>
+                    <div class="text-muted">Yıl Dönümü</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center p-3 border rounded">
+                    <div class="h3 text-info mb-1">{{ birthdays|length + anniversaries|length }}</div>
+                    <div class="text-muted">Toplam Etkinlik</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showBirthdays() {
+    document.getElementById('birthdaysSection').style.display = 'block';
+    document.getElementById('anniversariesSection').style.display = 'none';
+    
+    // Update button states
+    updateButtonStates('birthdays');
+}
+
+function showAnniversaries() {
+    document.getElementById('birthdaysSection').style.display = 'none';
+    document.getElementById('anniversariesSection').style.display = 'block';
+    
+    // Update button states
+    updateButtonStates('anniversaries');
+}
+
+function showAll() {
+    document.getElementById('birthdaysSection').style.display = 'block';
+    document.getElementById('anniversariesSection').style.display = 'block';
+    
+    // Update button states
+    updateButtonStates('all');
+}
+
+function updateButtonStates(activeView) {
+    // Remove active states
+    document.querySelectorAll('.btn-outline-primary, .btn-outline-success, .btn-primary').forEach(btn => {
+        btn.className = btn.className.replace('btn-primary', 'btn-outline-primary');
+        btn.className = btn.className.replace('btn-outline-success', 'btn-outline-primary');
+    });
+    
+    // Set active state based on view
+    const buttons = document.querySelectorAll('button[onclick]');
+    buttons.forEach(btn => {
+        if (activeView === 'all' && btn.getAttribute('onclick') === 'showAll()') {
+            btn.className = btn.className.replace('btn-outline-primary', 'btn-primary');
+        } else if (activeView === 'birthdays' && btn.getAttribute('onclick') === 'showBirthdays()') {
+            btn.className = btn.className.replace('btn-outline-primary', 'btn-primary');
+        } else if (activeView === 'anniversaries' && btn.getAttribute('onclick') === 'showAnniversaries()') {
+            btn.className = btn.className.replace('btn-outline-primary', 'btn-success');
+        }
+    });
+}
+
+// Initialize view
+document.addEventListener('DOMContentLoaded', function() {
+    showAll(); // Show all by default
+});
+</script>
+{% endblock %} 

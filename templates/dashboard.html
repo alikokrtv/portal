@@ -17,32 +17,42 @@
     </div>
 
     <!-- Statistics Cards -->
-    <div class="col-md-4 mb-4">
-        <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-            <div class="stat-number">{{ total_users }}</div>
+    <div class="col-md-3 mb-4">
+        <div class="stat-card">
+            <div class="stat-number text-primary">{{ total_users }}</div>
             <div class="d-flex align-items-center">
-                <i class="bi bi-people me-2" style="font-size: 1.5rem;"></i>
-                <span>Toplam Kullanıcı</span>
+                <i class="bi bi-people me-2 text-primary" style="font-size: 1.5rem;"></i>
+                <span class="stat-label">Toplam Personel</span>
             </div>
         </div>
     </div>
 
-    <div class="col-md-4 mb-4">
-        <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
-            <div class="stat-number">{{ total_announcements }}</div>
+    <div class="col-md-3 mb-4">
+        <div class="stat-card">
+            <div class="stat-number text-success">{{ total_departments }}</div>
             <div class="d-flex align-items-center">
-                <i class="bi bi-megaphone me-2" style="font-size: 1.5rem;"></i>
-                <span>Toplam Duyuru</span>
+                <i class="bi bi-building me-2 text-success" style="font-size: 1.5rem;"></i>
+                <span class="stat-label">Departman</span>
             </div>
         </div>
     </div>
 
-    <div class="col-md-4 mb-4">
-        <div class="stat-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
-            <div class="stat-number">{{ unread_messages }}</div>
+    <div class="col-md-3 mb-4">
+        <div class="stat-card">
+            <div class="stat-number text-info">{{ total_announcements }}</div>
             <div class="d-flex align-items-center">
-                <i class="bi bi-envelope me-2" style="font-size: 1.5rem;"></i>
-                <span>Okunmamış Mesaj</span>
+                <i class="bi bi-megaphone me-2 text-info" style="font-size: 1.5rem;"></i>
+                <span class="stat-label">Duyuru</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="stat-card">
+            <div class="stat-number text-warning">{{ unread_messages }}</div>
+            <div class="d-flex align-items-center">
+                <i class="bi bi-envelope me-2 text-warning" style="font-size: 1.5rem;"></i>
+                <span class="stat-label">Okunmamış Mesaj</span>
             </div>
         </div>
     </div>
@@ -88,6 +98,97 @@
         </div>
     </div>
 
+    <!-- Upcoming Birthdays -->
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-gift me-2 text-primary"></i>
+                    Yaklaşan Doğum Günleri
+                </h5>
+                <a href="{{ url_for('special_days') }}" class="btn btn-outline-primary btn-sm">
+                    Tümünü Gör
+                </a>
+            </div>
+            <div class="card-body">
+                {% if upcoming_birthdays %}
+                    {% for birthday in upcoming_birthdays %}
+                    <div class="d-flex align-items-center mb-3 {% if not loop.last %}border-bottom pb-3{% endif %}">
+                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; min-width: 40px;">
+                            <i class="bi bi-person text-white"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">{{ birthday.first_name }} {{ birthday.last_name }}</h6>
+                            <small class="text-muted">
+                                <i class="bi bi-calendar me-1"></i>
+                                {% if birthday.days_until_birthday == 0 %}
+                                    Bugün! 🎉
+                                {% elif birthday.days_until_birthday == 1 %}
+                                    Yarın
+                                {% else %}
+                                    {{ birthday.days_until_birthday }} gün sonra
+                                {% endif %}
+                            </small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-3">
+                        <i class="bi bi-gift text-muted" style="font-size: 2rem;"></i>
+                        <p class="text-muted mt-2 mb-0">Yaklaşan doğum günü yok</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Work Anniversaries -->
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-award me-2 text-success"></i>
+                    Yaklaşan Yıl Dönümleri
+                </h5>
+                <a href="{{ url_for('special_days') }}" class="btn btn-outline-success btn-sm">
+                    Tümünü Gör
+                </a>
+            </div>
+            <div class="card-body">
+                {% if upcoming_anniversaries %}
+                    {% for anniversary in upcoming_anniversaries %}
+                    <div class="d-flex align-items-center mb-3 {% if not loop.last %}border-bottom pb-3{% endif %}">
+                        <div class="bg-success rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; min-width: 40px;">
+                            <i class="bi bi-award text-white"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">{{ anniversary.first_name }} {{ anniversary.last_name }}</h6>
+                            <small class="text-muted">
+                                <i class="bi bi-calendar-check me-1"></i>
+                                {{ anniversary.years_of_service }} yıl - 
+                                {% if anniversary.days_until_anniversary == 0 %}
+                                    Bugün! 🎊
+                                {% elif anniversary.days_until_anniversary == 1 %}
+                                    Yarın
+                                {% else %}
+                                    {{ anniversary.days_until_anniversary }} gün sonra
+                                {% endif %}
+                            </small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-3">
+                        <i class="bi bi-award text-muted" style="font-size: 2rem;"></i>
+                        <p class="text-muted mt-2 mb-0">Yaklaşan yıl dönümü yok</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
     <!-- Quick Actions -->
     <div class="col-md-4 mb-4">
         <div class="card">
@@ -107,23 +208,42 @@
                         <i class="bi bi-chat-dots me-2"></i>
                         Mesaj Gönder
                     </button>
-                    <a href="{{ url_for('users') }}" class="btn btn-info">
+                    <a href="{{ url_for('personnel') }}" class="btn btn-info">
                         <i class="bi bi-people me-2"></i>
-                        Kullanıcıları Görüntüle
+                        Personel Yönetimi
+                    </a>
+                    <a href="{{ url_for('departments') }}" class="btn btn-warning">
+                        <i class="bi bi-building me-2"></i>
+                        Departman Yönetimi
                     </a>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- System Info -->
-        <div class="card mt-3">
+    <!-- Quick Tasks Info -->
+    <div class="col-md-4 mb-4">
+        <div class="card">
             <div class="card-header">
                 <h5 class="mb-0">
-                    <i class="bi bi-info-circle me-2 text-info"></i>
-                    Sistem Bilgisi
+                    <i class="bi bi-check-square me-2 text-info"></i>
+                    Görev Durumu
                 </h5>
             </div>
             <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span>Bekleyen Görevler</span>
+                    <span class="badge bg-warning text-dark">{{ pending_tasks }}</span>
+                </div>
+                <div class="d-grid">
+                    <a href="{{ url_for('tasks') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-list-task me-2"></i>
+                        Tüm Görevleri Görüntüle
+                    </a>
+                </div>
+                
+                <hr class="my-3">
+                
                 <div class="small">
                     <div class="d-flex justify-content-between mb-2">
                         <span>Sistem:</span>
@@ -131,7 +251,7 @@
                     </div>
                     <div class="d-flex justify-content-between mb-2">
                         <span>Sürüm:</span>
-                        <span class="text-muted">v1.0.0</span>
+                        <span class="text-muted">v2.0.0</span>
                     </div>
                     <div class="d-flex justify-content-between">
                         <span>Durum:</span>

@@ -162,6 +162,20 @@
             text-align: center;
         }
         
+        .nav-section-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--muted-foreground);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 0.75rem 1rem 0.25rem;
+            margin-top: 1rem;
+        }
+        
+        .nav-section-title:first-child {
+            margin-top: 0;
+        }
+        
         /* Main Content Area */
         .main-wrapper {
             margin-left: 280px;
@@ -464,6 +478,9 @@
                     <i class="bi bi-speedometer2"></i>
                     <span>Ana Sayfa</span>
                 </a>
+                
+                <!-- İletişim -->
+                <div class="nav-section-title">İletişim</div>
                 <a class="nav-link {{ 'active' if request.endpoint == 'announcements' else '' }}" href="{{ url_for('announcements') }}">
                     <i class="bi bi-megaphone"></i>
                     <span>Duyurular</span>
@@ -473,9 +490,34 @@
                     <span>Mesajlar</span>
                     <span id="unread-badge" class="notification-badge" style="display: none;">0</span>
                 </a>
-                <a class="nav-link {{ 'active' if request.endpoint == 'users' else '' }}" href="{{ url_for('users') }}">
+                
+                <!-- Yönetim -->
+                <div class="nav-section-title">Yönetim</div>
+                <a class="nav-link {{ 'active' if request.endpoint == 'personnel' else '' }}" href="{{ url_for('personnel') }}">
                     <i class="bi bi-people"></i>
-                    <span>Kullanıcılar</span>
+                    <span>Personel</span>
+                </a>
+                <a class="nav-link {{ 'active' if request.endpoint == 'departments' else '' }}" href="{{ url_for('departments') }}">
+                    <i class="bi bi-building"></i>
+                    <span>Departmanlar</span>
+                </a>
+                <a class="nav-link {{ 'active' if request.endpoint == 'tasks' else '' }}" href="{{ url_for('tasks') }}">
+                    <i class="bi bi-check-square"></i>
+                    <span>Görevler</span>
+                </a>
+                
+                <!-- Dokümanlar -->
+                <div class="nav-section-title">Dokümanlar</div>
+                <a class="nav-link {{ 'active' if request.endpoint == 'documents' else '' }}" href="{{ url_for('documents') }}">
+                    <i class="bi bi-file-earmark-text"></i>
+                    <span>Belgeler</span>
+                </a>
+                
+                <!-- Özel Günler -->
+                <div class="nav-section-title">Etkinlikler</div>
+                <a class="nav-link {{ 'active' if request.endpoint == 'special_days' else '' }}" href="{{ url_for('special_days') }}">
+                    <i class="bi bi-calendar-heart"></i>
+                    <span>Özel Günler</span>
                 </a>
                 
                 <!-- Divider -->

@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}Personel Yönetimi{% endblock %}
+{% block page_title %}Personel Yönetimi{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="h4 mb-0">Personel Yönetimi</h2>
+        <p class="text-muted mb-0">Tüm personel bilgilerini görüntüleyin ve yönetin</p>
+    </div>
+    <div class="d-flex gap-2">
+        <select class="form-control" id="departmentFilter" style="width: 200px;">
+            <option value="">Tüm Departmanlar</option>
+            {% for dept in departments %}
+                <option value="{{ dept.id }}">{{ dept.name }}</option>
+            {% endfor %}
+        </select>
+        <input type="text" class="form-control" placeholder="Personel ara..." style="width: 250px;" id="searchPersonnel">
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-number text-primary">{{ users|length }}</div>
+            <div class="stat-label">Toplam Personel</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-number text-success">{{ departments|length }}</div>
+            <div class="stat-label">Departman</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-number text-info">
+                {{ users | selectattr('hire_date') | list | length }}
+            </div>
+            <div class="stat-label">Aktif Personel</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-number text-warning">
+                {{ users | selectattr('birth_date') | list | length }}
+            </div>
+            <div class="stat-label">Doğum Günü Kaydı</div>
+        </div>
+    </div>
+</div>
+
+<!-- Personnel Grid -->
+<div class="row" id="personnelGrid">
+    {% for user in users %}
+    <div class="col-lg-4 col-md-6 mb-4 personnel-card" 
+         data-department="{{ user.department_id or '' }}" 
+         data-name="{{ user.first_name }} {{ user.last_name }}">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-start mb-3">
+                    <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" 
+                         style="width: 60px; height: 60px; min-width: 60px;">
+                        {% if user.profile_picture %}
+                            <img src="{{ user.profile_picture }}" alt="{{ user.first_name }}" 
+                                 style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover;">
+                        {% else %}
+                            <span class="text-white fw-bold" style="font-size: 1.2rem;">
+                                {{ user.first_name[0] }}{{ user.last_name[0] }}
+                            </span>
+                        {% endif %}
+                    </div>
+                    <div class="flex-grow-1">
+                        <h5 class="card-title mb-1">{{ user.first_name }} {{ user.last_name }}</h5>
+                        <p class="text-muted mb-2">{{ user.position or 'Pozisyon belirtilmemiş' }}</p>
+                        {% if user.department_name %}
+                            <span class="badge bg-secondary">{{ user.department_name }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="space-y-2">
+                    <div class="d-flex align-items-center text-sm">
+                        <i class="bi bi-envelope me-2 text-muted"></i>
+                        <span>{{ user.email }}</span>
+                    </div>
+                    <div class="d-flex align-items-center text-sm">
+                        <i class="bi bi-person me-2 text-muted"></i>
+                        <span>{{ user.username }}</span>
+                    </div>
+                    {% if user.phone %}
+                    <div class="d-flex align-items-center text-sm">
+                        <i class="bi bi-telephone me-2 text-muted"></i>
+                        <span>{{ user.phone }}</span>
+                    </div>
+                    {% endif %}
+                    {% if user.hire_date %}
+                    <div class="d-flex align-items-center text-sm">
+                        <i class="bi bi-calendar-check me-2 text-muted"></i>
+                        <span>İşe Başlama: {{ user.hire_date.strftime('%d.%m.%Y') if user.hire_date else 'Belirtilmemiş' }}</span>
+                    </div>
+                    {% endif %}
+                    {% if user.birth_date %}
+                    <div class="d-flex align-items-center text-sm">
+                        <i class="bi bi-gift me-2 text-muted"></i>
+                        <span>Doğum Günü: {{ user.birth_date.strftime('%d.%m') if user.birth_date else 'Belirtilmemiş' }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-footer bg-transparent">
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                        <i class="bi bi-clock me-1"></i>
+                        Kayıt: {{ user.created_at.strftime('%d.%m.%Y') if user.created_at else 'Bilinmiyor' }}
+                    </small>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-primary btn-sm" 
+                                title="Mesaj Gönder"
+                                onclick="sendMessageToUser('{{ user.id }}', '{{ user.first_name }} {{ user.last_name }}')">
+                            <i class="bi bi-envelope"></i>
+                        </button>
+                        <button class="btn btn-outline-info btn-sm" title="Detaylar">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" title="Düzenle">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Send Message Modal -->
+<div class="modal fade" id="sendMessageModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-envelope me-2"></i>
+                    Mesaj Gönder
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('send_message') }}" method="POST">
+                <div class="modal-body">
+                    <input type="hidden" id="targetUserId" name="receiver_id">
+                    <div class="mb-3">
+                        <label class="form-label">Alıcı</label>
+                        <input type="text" class="form-control" id="targetUserName" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="messageSubject" class="form-label">Konu</label>
+                        <input type="text" class="form-control" id="messageSubject" name="subject">
+                    </div>
+                    <div class="mb-3">
+                        <label for="messageContent" class="form-label">Mesaj</label>
+                        <textarea class="form-control" id="messageContent" name="content" rows="4" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-send me-2"></i>
+                        Gönder
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function sendMessageToUser(userId, userName) {
+    document.getElementById('targetUserId').value = userId;
+    document.getElementById('targetUserName').value = userName;
+    
+    const modal = new bootstrap.Modal(document.getElementById('sendMessageModal'));
+    modal.show();
+}
+
+// Filter functionality
+document.getElementById('departmentFilter').addEventListener('change', function() {
+    filterPersonnel();
+});
+
+document.getElementById('searchPersonnel').addEventListener('input', function() {
+    filterPersonnel();
+});
+
+function filterPersonnel() {
+    const departmentFilter = document.getElementById('departmentFilter').value;
+    const searchTerm = document.getElementById('searchPersonnel').value.toLowerCase();
+    const personnelCards = document.querySelectorAll('.personnel-card');
+    
+    personnelCards.forEach(card => {
+        const cardDepartment = card.getAttribute('data-department');
+        const cardName = card.getAttribute('data-name').toLowerCase();
+        
+        let showCard = true;
+        
+        // Department filter
+        if (departmentFilter && cardDepartment !== departmentFilter) {
+            showCard = false;
+        }
+        
+        // Search filter
+        if (searchTerm && !cardName.includes(searchTerm)) {
+            showCard = false;
+        }
+        
+        card.style.display = showCard ? 'block' : 'none';
+    });
+}
+
+// Initialize filters
+document.addEventListener('DOMContentLoaded', function() {
+    // Any initialization code
+});
+</script>
+{% endblock %} 
