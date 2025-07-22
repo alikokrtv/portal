@@ -4,48 +4,11 @@
 {% block page_title %}Plus Kitchen Portal{% endblock %}
 
 {% block content %}
-<!-- Basit İstatistik Sayıları -->
-<div class="row mb-4">
-    <div class="col-md-3 mb-3">
-        <div class="card text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-            <div class="card-body text-center">
-                <h2 class="text-white mb-1">{{ total_announcements }}</h2>
-                <p class="text-white mb-0">Toplam Duyuru</p>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-3 mb-3">
-        <div class="card text-white" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-            <div class="card-body text-center">
-                <h2 class="text-white mb-1">{{ total_personnel }}</h2>
-                <p class="text-white mb-0">Toplam Personel</p>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-3 mb-3">
-        <div class="card text-white" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-            <div class="card-body text-center">
-                <h2 class="text-white mb-1">{{ total_departments }}</h2>
-                <p class="text-white mb-0">Toplam Departman</p>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-3 mb-3">
-        <div class="card text-white" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
-            <div class="card-body text-center">
-                <h2 class="text-white mb-1">{{ upcoming_birthdays|length }}</h2>
-                <p class="text-white mb-0">Yaklaşan Doğum Günü</p>
-            </div>
-        </div>
-    </div>
-</div>
+<!-- Widget'lar kaldırıldı -->
 
 <div class="row">
-    <!-- Son Duyurular - Merkez -->
-    <div class="col-md-6 mb-4">
+    <!-- Ana İçerik - Duyurular (Orta) -->
+    <div class="col-md-8 mb-4">
         <div class="card h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">
@@ -88,8 +51,8 @@
         </div>
     </div>
 
-    <!-- Sağ Taraf Sütunu -->
-    <div class="col-md-6">
+    <!-- Sağ Sidebar -->
+    <div class="col-md-4">
         <!-- Yaklaşan Doğum Günleri -->
         <div class="card mb-4">
             <div class="card-header">

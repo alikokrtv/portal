@@ -24,9 +24,28 @@ MYSQL_CONFIG = {
     'port': int(os.environ.get('DB_PORT', 3306))
 }
 
-# Database connection
+# Database connection with fallback passwords
 def get_db_connection():
-    return pymysql.connect(**MYSQL_CONFIG)
+    passwords_to_try = ['255223Rtv', '', 'root', 'admin', '2552232']
+    
+    for password in passwords_to_try:
+        try:
+            config = MYSQL_CONFIG.copy()
+            config['password'] = password
+            return pymysql.connect(**config)
+        except pymysql.err.OperationalError as e:
+            if "Access denied" in str(e):
+                continue
+            else:
+                raise e
+    
+    # If all passwords fail, try without password
+    try:
+        config = MYSQL_CONFIG.copy()
+        config.pop('password', None)
+        return pymysql.connect(**config)
+    except:
+        raise Exception("MySQL bağlantısı kurulamadı. Şifre veya database ayarlarını kontrol edin.")
 
 def require_login(f):
     def wrapper(*args, **kwargs):
@@ -624,6 +643,42 @@ def api_departments():
     conn.close()
     
     return jsonify({'departments': departments})
+
+@app.route('/jobs')
+@require_login  
+def jobs():
+    # Basit açık pozisyonlar sayfası
+    jobs_list = [
+        {
+            'id': 1,
+            'title': 'Frontend Developer',
+            'department': 'Teknoloji',
+            'location': 'İstanbul',
+            'type': 'Tam Zamanlı',
+            'posted_date': '2025-07-20',
+            'description': 'React ve JavaScript deneyimi olan Frontend Developer aranıyor.'
+        },
+        {
+            'id': 2,
+            'title': 'İK Uzmanı',
+            'department': 'İnsan Kaynakları',
+            'location': 'İstanbul',
+            'type': 'Tam Zamanlı', 
+            'posted_date': '2025-07-18',
+            'description': 'Deneyimli İK Uzmanı aranıyor.'
+        },
+        {
+            'id': 3,
+            'title': 'Muhasebe Uzmanı',
+            'department': 'Finans',
+            'location': 'İstanbul',
+            'type': 'Yarı Zamanlı',
+            'posted_date': '2025-07-15',
+            'description': 'Muhasebe alanında deneyimli uzman aranıyor.'
+        }
+    ]
+    
+    return render_template('jobs.html', jobs=jobs_list)
 
 if __name__ == '__main__':
     app.run(

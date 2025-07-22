@@ -429,10 +429,22 @@
             .sidebar {
                 transform: translateX(-100%);
                 transition: transform 0.3s ease;
+                z-index: 1050;
             }
             
             .sidebar.show {
                 transform: translateX(0);
+            }
+            
+            .sidebar.show::before {
+                content: '';
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: -1;
             }
             
             .main-wrapper {
@@ -474,17 +486,28 @@
             
             <!-- Navigation -->
             <nav class="space-y-1">
+                <!-- HERKES İÇİN AÇIK MENÜLER -->
                 <a class="nav-link {{ 'active' if request.endpoint == 'dashboard' else '' }}" href="{{ url_for('dashboard') }}">
                     <i class="bi bi-speedometer2"></i>
                     <span>Ana Sayfa</span>
                 </a>
                 
-                <!-- İletişim -->
-                <div class="nav-section-title">İletişim</div>
                 <a class="nav-link {{ 'active' if request.endpoint == 'announcements' else '' }}" href="{{ url_for('announcements') }}">
                     <i class="bi bi-megaphone"></i>
                     <span>Duyurular</span>
                 </a>
+                
+                <!-- Açık Pozisyonlar - Herkes görebilir -->
+                <a class="nav-link" href="/jobs">
+                    <i class="bi bi-briefcase"></i>
+                    <span>Açık Pozisyonlar</span>
+                </a>
+                
+                <!-- SADECE ADMIN/İK YÖNETİCİSİ İÇİN -->
+                {% if session.is_admin %}
+                
+                <!-- İletişim -->
+                <div class="nav-section-title">İletişim</div>
                 <a class="nav-link {{ 'active' if request.endpoint == 'messages' else '' }}" href="{{ url_for('messages') }}">
                     <i class="bi bi-chat-dots"></i>
                     <span>Mesajlar</span>
@@ -515,6 +538,8 @@
                     <i class="bi bi-calendar-heart"></i>
                     <span>Özel Günler</span>
                 </a>
+                
+                {% endif %}
                 
                 <!-- Divider -->
                 <div style="height: 1px; background: var(--border); margin: 1rem 0;"></div>
@@ -788,6 +813,13 @@
             if (sidebarToggle && sidebar) {
                 sidebarToggle.addEventListener('click', () => {
                     sidebar.classList.toggle('show');
+                    
+                    // Sidebar açıkken body scroll'unu engelle
+                    if (sidebar.classList.contains('show')) {
+                        document.body.style.overflow = 'hidden';
+                    } else {
+                        document.body.style.overflow = '';
+                    }
                 });
                 
                 // Close sidebar when clicking outside on mobile
@@ -796,6 +828,7 @@
                         !sidebar.contains(e.target) && 
                         !sidebarToggle.contains(e.target)) {
                         sidebar.classList.remove('show');
+                        document.body.style.overflow = ''; // Scroll'u tekrar aktif et
                     }
                 });
             }
@@ -952,10 +985,11 @@
         window.markMessageRead = markMessageRead;
     </script>
     
-    <!-- Mobil Footer Menü -->
+    <!-- Mobil Footer Menü - Basit -->
     <div class="mobile-bottom-nav d-md-none">
         <div class="container-fluid">
             <div class="row">
+                <!-- HERKES İÇİN TEMEL MENÜLER -->
                 <div class="col text-center">
                     <a href="{{ url_for('dashboard') }}" class="mobile-nav-item {{ 'active' if request.endpoint == 'dashboard' else '' }}">
                         <i class="bi bi-house"></i>
@@ -966,18 +1000,6 @@
                     <a href="{{ url_for('announcements') }}" class="mobile-nav-item {{ 'active' if request.endpoint == 'announcements' else '' }}">
                         <i class="bi bi-megaphone"></i>
                         <span>Duyurular</span>
-                    </a>
-                </div>
-                <div class="col text-center">
-                    <a href="{{ url_for('personnel') }}" class="mobile-nav-item {{ 'active' if request.endpoint == 'personnel' else '' }}">
-                        <i class="bi bi-people"></i>
-                        <span>Personel</span>
-                    </a>
-                </div>
-                <div class="col text-center">
-                    <a href="{{ url_for('special_days') }}" class="mobile-nav-item {{ 'active' if request.endpoint == 'special_days' else '' }}">
-                        <i class="bi bi-calendar-heart"></i>
-                        <span>Etkinlik</span>
                     </a>
                 </div>
                 <div class="col text-center">
