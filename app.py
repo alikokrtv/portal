@@ -428,10 +428,19 @@ def personnel_detail(id):
         flash('Personel bulunamadı!', 'error')
         return redirect(url_for('personnel'))
     
-    # Tarih türlerini uyumlu hale getir
-    if user.get('hire_date') and hasattr(user['hire_date'], 'date'):
-        # Eğer datetime ise date'e çevir
-        user['hire_date'] = user['hire_date'].date()
+    # Tarih türlerini uyumlu hale getir - mutable dict oluştur
+    user = dict(user)  # Mutable dict'e çevir
+    
+    # hire_date'i date objesi yap
+    if user.get('hire_date'):
+        if hasattr(user['hire_date'], 'date'):
+            # Eğer datetime ise date'e çevir
+            user['hire_date'] = user['hire_date'].date()
+    
+    # birth_date'i de kontrol et
+    if user.get('birth_date'):
+        if hasattr(user['birth_date'], 'date'):
+            user['birth_date'] = user['birth_date'].date()
     
     return render_template('personnel_detail.html', user=user, today=date.today())
 
