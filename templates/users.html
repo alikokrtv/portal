@@ -1,87 +1,168 @@
 {% extends "base.html" %}
 
 {% block title %}Kullanıcılar{% endblock %}
-{% block page_title %}Kullanıcılar{% endblock %}
+{% block page_title %}Kullanıcı Yönetimi{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h2 class="h4 mb-0">Tüm Kullanıcılar</h2>
-        <p class="text-muted mb-0">Sistem kullanıcılarını görüntüleyin</p>
-    </div>
-    <div class="d-flex gap-2">
-        <input type="text" class="form-control" placeholder="Kullanıcı ara..." style="width: 250px;" id="searchUser">
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newUserModal">
-            <i class="bi bi-person-plus me-2"></i>
-            Yeni Kullanıcı
-        </button>
-    </div>
-</div>
-
 <div class="row">
-    {% if users %}
-        {% for user in users %}
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card h-100">
-                <div class="card-body text-center">
-                    <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 80px; height: 80px;">
-                        <span class="text-white fw-bold" style="font-size: 1.5rem;">{{ user.first_name[0] }}{{ user.last_name[0] }}</span>
-                    </div>
-                    <h5 class="card-title mb-1">{{ user.first_name }} {{ user.last_name }}</h5>
-                    <p class="text-muted mb-2">{{ '@' + user.username }}</p>
-                    
-                    <div class="mb-3">
-                        {% if user.department_name %}
-                            <span class="badge bg-secondary">{{ user.department_name }}</span>
-                        {% endif %}
-                        {% if user.position %}
-                            <span class="badge bg-info">{{ user.position }}</span>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="text-start small">
-                        <div class="d-flex justify-content-between mb-1">
-                            <span><i class="bi bi-envelope me-1"></i>Email:</span>
-                            <span class="text-muted">{{ user.email }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-1">
-                            <span><i class="bi bi-calendar me-1"></i>Kayıt:</span>
-                            <span class="text-muted">{{ user.created_at.strftime('%d/%m/%Y') if user.created_at else 'N/A' }}</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-footer bg-transparent">
-                    <div class="d-flex justify-content-center gap-2">
-                        <button class="btn btn-outline-primary btn-sm" title="Mesaj Gönder" onclick="sendMessageToUser('{{ user.id }}', '{{ user.first_name }} {{ user.last_name }}')">
-                            <i class="bi bi-envelope"></i>
-                        </button>
-                        <button class="btn btn-outline-secondary btn-sm" title="Profil Görüntüle">
-                            <i class="bi bi-person"></i>
-                        </button>
-                        <button class="btn btn-outline-info btn-sm" title="Düzenle">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endfor %}
-    {% else %}
-        <div class="col-12">
-            <div class="text-center py-5">
-                <i class="bi bi-people text-muted" style="font-size: 4rem;"></i>
-                <h4 class="mt-3 mb-2">Henüz kullanıcı bulunmuyor</h4>
-                <p class="text-muted mb-4">İlk kullanıcıyı oluşturmak için aşağıdaki butona tıklayın.</p>
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-person-gear me-2"></i>
+                    Kullanıcı Listesi
+                </h5>
                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newUserModal">
-                    <i class="bi bi-person-plus me-2"></i>
-                    İlk Kullanıcıyı Oluştur
+                    <i class="bi bi-plus-circle me-2"></i>
+                    Yeni Kullanıcı
                 </button>
             </div>
+            <div class="card-body">
+                {% if users %}
+                    <div class="row">
+                        {% for user in users %}
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                                <span class="text-white fw-bold">{{ user.first_name[0] }}{{ user.last_name[0] }}</span>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1">{{ user.first_name }} {{ user.last_name }}</h6>
+                                                <small class="text-muted">@{{ user.username }}</small>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            {% if user.department_name %}
+                                                <span class="badge bg-secondary">{{ user.department_name }}</span>
+                                            {% endif %}
+                                            {% if user.position %}
+                                                <span class="badge bg-info">{{ user.position }}</span>
+                                            {% endif %}
+                                            <span class="badge bg-primary">{{ user.role }}</span>
+                                        </div>
+                                        
+                                        <div class="mb-2">
+                                            <small class="text-muted">
+                                                <i class="bi bi-envelope me-1"></i>
+                                                {{ user.email }}
+                                            </small>
+                                        </div>
+                                        
+                                        {% if user.phone_number %}
+                                        <div class="mb-2">
+                                            <small class="text-muted">
+                                                <i class="bi bi-telephone me-1"></i>
+                                                {{ user.phone_number }}
+                                            </small>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        {% if user.birth_date %}
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <span><i class="bi bi-cake me-1"></i>Doğum:</span>
+                                            <span class="text-muted">{{ user.birth_date.strftime('%d/%m/%Y') }}</span>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        {% if user.hire_date %}
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <span><i class="bi bi-briefcase me-1"></i>İşe Başlama:</span>
+                                            <span class="text-muted">{{ user.hire_date.strftime('%d/%m/%Y') }}</span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="card-footer">
+                                        <div class="btn-group w-100" role="group">
+                                            <button class="btn btn-outline-primary btn-sm">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-outline-danger btn-sm">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-person-plus display-4 text-muted mb-3"></i>
+                        <h5 class="text-muted">Henüz kullanıcı yok</h5>
+                        <p class="text-muted">İlk kullanıcıyı oluşturmak için yukarıdaki butonu kullanın.</p>
+                    </div>
+                {% endif %}
+            </div>
         </div>
-    {% endif %}
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Kullanıcı İstatistikleri
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Toplam Kullanıcı:</span>
+                        <span class="fw-bold text-primary">{{ users|length }}</span>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Admin:</span>
+                        <span class="fw-bold text-danger">{{ users|selectattr('role', 'equalto', 'admin')|list|length }}</span>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Kullanıcı:</span>
+                        <span class="fw-bold text-success">{{ users|selectattr('role', 'equalto', 'user')|list|length }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-building me-2"></i>
+                    Departman Dağılımı
+                </h6>
+            </div>
+            <div class="card-body">
+                {% set dept_counts = {} %}
+                {% for user in users %}
+                    {% if user.department_name %}
+                        {% if dept_counts.update({user.department_name: dept_counts.get(user.department_name, 0) + 1}) %}{% endif %}
+                    {% endif %}
+                {% endfor %}
+                
+                {% for dept, count in dept_counts.items() %}
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>{{ dept }}:</span>
+                        <span class="fw-bold">{{ count }}</span>
+                    </div>
+                {% endfor %}
+                
+                {% if not dept_counts %}
+                    <p class="text-muted text-center">Departman atanmamış</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- New User Modal -->
+<!-- Yeni Kullanıcı Modal -->
 <div class="modal fade" id="newUserModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -92,107 +173,95 @@
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
+            
             <form method="POST" action="{{ url_for('create_user') }}">
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="firstName" class="form-label">Ad</label>
+                                <label for="firstName" class="form-label">Ad *</label>
                                 <input type="text" class="form-control" id="firstName" name="first_name" required>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="lastName" class="form-label">Soyad</label>
+                                <label for="lastName" class="form-label">Soyad *</label>
                                 <input type="text" class="form-control" id="lastName" name="last_name" required>
                             </div>
                         </div>
                     </div>
+                    
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="username" class="form-label">Kullanıcı Adı</label>
+                                <label for="username" class="form-label">Kullanıcı Adı *</label>
                                 <input type="text" class="form-control" id="username" name="username" required>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="email" class="form-label">Email</label>
+                                <label for="email" class="form-label">Email *</label>
                                 <input type="email" class="form-control" id="email" name="email" required>
                             </div>
                         </div>
                     </div>
+                    
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="departmentSelect" class="form-label">Departman</label>
-                                <select class="form-control" id="departmentSelect" name="department_id">
-                                    <option value="">Seçiniz...</option>
-                                    {% for dept in departments %}
-                                        <option value="{{ dept.id }}">{{ dept.name }}</option>
-                                    {% endfor %}
-                                </select>
+                                <label for="password" class="form-label">Şifre *</label>
+                                <input type="password" class="form-control" id="password" name="password" required>
                             </div>
                         </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="phoneNumber" class="form-label">Telefon</label>
+                                <input type="text" class="form-control" id="phoneNumber" name="phone_number">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="position" class="form-label">Pozisyon</label>
                                 <input type="text" class="form-control" id="position" name="position">
                             </div>
                         </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="departmentName" class="form-label">Departman</label>
+                                <select class="form-control" id="departmentName" name="department_name">
+                                    <option value="">Seçiniz...</option>
+                                    {% for dept in departments %}
+                                        <option value="{{ dept.name }}">{{ dept.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Şifre</label>
-                        <input type="password" class="form-control" id="password" name="password" required>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="bi bi-x me-2"></i>
-                        İptal
-                    </button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-check me-2"></i>
-                        Kullanıcı Oluştur
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Send Message Modal -->
-<div class="modal fade" id="sendMessageModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="bi bi-envelope me-2"></i>
-                    Mesaj Gönder
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form action="{{ url_for('send_message') }}" method="POST">
-                <div class="modal-body">
-                    <input type="hidden" id="targetUserId" name="receiver_id">
-                    <div class="mb-3">
-                        <label class="form-label">Alıcı</label>
-                        <input type="text" class="form-control" id="targetUserName" readonly>
-                    </div>
-                    <div class="mb-3">
-                        <label for="messageSubject" class="form-label">Konu</label>
-                        <input type="text" class="form-control" id="messageSubject" name="subject">
-                    </div>
-                    <div class="mb-3">
-                        <label for="messageContent" class="form-label">Mesaj</label>
-                        <textarea class="form-control" id="messageContent" name="content" rows="4" required></textarea>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="birthDate" class="form-label">Doğum Tarihi</label>
+                                <input type="date" class="form-control" id="birthDate" name="birth_date">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="hireDate" class="form-label">İşe Başlama Tarihi</label>
+                                <input type="date" class="form-control" id="hireDate" name="hire_date">
+                            </div>
+                        </div>
                     </div>
                 </div>
+                
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
                     <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-send me-2"></i>
-                        Gönder
+                        <i class="bi bi-check me-2"></i>
+                        Kullanıcı Oluştur
                     </button>
                 </div>
             </form>

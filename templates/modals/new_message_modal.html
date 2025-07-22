@@ -1,0 +1,40 @@
+<!-- Yeni Mesaj Modal -->
+<div class="modal fade" id="newMessageModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-envelope me-2"></i>
+                    Yeni Mesaj Gönder
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('send_message') }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="messageReceiver" class="form-label">Alıcı *</label>
+                        <select class="form-control" id="messageReceiver" name="receiver_id" required>
+                            <option value="">Alıcı seçin...</option>
+                            <!-- Users will be loaded via JavaScript -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="messageSubject" class="form-label">Konu</label>
+                        <input type="text" class="form-control" id="messageSubject" name="subject" placeholder="Mesaj konusu">
+                    </div>
+                    <div class="mb-3">
+                        <label for="messageContent" class="form-label">Mesaj *</label>
+                        <textarea class="form-control" id="messageContent" name="content" rows="4" required placeholder="Mesajınızı yazın..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-send me-2"></i>
+                        Mesaj Gönder
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div> 

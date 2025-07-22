@@ -1,0 +1,50 @@
+<!-- Yeni Duyuru Modal -->
+<div class="modal fade" id="newAnnouncementModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-megaphone me-2"></i>
+                    Yeni Duyuru Oluştur
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('create_announcement') }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="announcementTitle" class="form-label">Başlık *</label>
+                        <input type="text" class="form-control" id="announcementTitle" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="announcementCategory" class="form-label">Kategori</label>
+                        <select class="form-control" id="announcementCategory" name="category">
+                            <option value="">Seçiniz...</option>
+                            <option value="genel">Genel</option>
+                            <option value="eğitim">Eğitim</option>
+                            <option value="sistem">Sistem</option>
+                            <option value="hukuki">Hukuki</option>
+                            <option value="kalite">Kalite</option>
+                            <option value="pazarlama">Pazarlama</option>
+                            <option value="ik">İnsan Kaynakları</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="announcementContent" class="form-label">İçerik *</label>
+                        <textarea class="form-control" id="announcementContent" name="content" rows="5" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="announcementDepartment" class="form-label">Hedef Departman</label>
+                        <input type="text" class="form-control" id="announcementDepartment" name="department" placeholder="Boş bırakırsanız tüm departmanlara gönderilir">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check me-2"></i>
+                        Duyuru Oluştur
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div> 

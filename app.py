@@ -76,71 +76,105 @@ def dashboard():
     conn = get_db_connection()
     cursor = conn.cursor(pymysql.cursors.DictCursor)
     
-    # Get stats
-    cursor.execute('SELECT COUNT(*) as count FROM users')
-    total_users = cursor.fetchone()['count']
-    
-    cursor.execute('SELECT COUNT(*) as count FROM announcements')
-    total_announcements = cursor.fetchone()['count']
-    
-    cursor.execute('SELECT COUNT(*) as count FROM messages WHERE receiver_id = %s AND is_read = FALSE', 
-                   (session['user_id'],))
-    unread_messages = cursor.fetchone()['count']
-    
-    cursor.execute('SELECT COUNT(*) as count FROM departments')
-    total_departments = cursor.fetchone()['count']
-    
-    # Get recent announcements
+    # Recent announcements (last 5)
     cursor.execute('''
-        SELECT a.*, u.first_name, u.last_name 
+        SELECT a.*, u.first_name, u.last_name
         FROM announcements a 
-        JOIN users u ON a.author_id = u.id 
-        ORDER BY a.created_at DESC LIMIT 5
+        LEFT JOIN users u ON a.author_id = u.id 
+        ORDER BY a.created_at DESC 
+        LIMIT 5
     ''')
     announcements = cursor.fetchall()
     
-    # Get upcoming birthdays (next 30 days)
+    # Get upcoming birthdays (next 30 days) - bugün olanları farklı göster
     cursor.execute('''
         SELECT u.first_name, u.last_name, u.birth_date,
-               DATEDIFF(
-                   DATE_ADD(MAKEDATE(YEAR(CURDATE()), 1), 
-                   INTERVAL (DAYOFYEAR(u.birth_date) - 1) DAY),
-                   CURDATE()
-               ) as days_until_birthday
+               CASE 
+                   WHEN DATE_FORMAT(u.birth_date, '%m-%d') = DATE_FORMAT(CURDATE(), '%m-%d') THEN 0
+                   ELSE DATEDIFF(
+                       DATE_ADD(MAKEDATE(YEAR(CURDATE()), 1), 
+                       INTERVAL (DAYOFYEAR(u.birth_date) - 1) DAY),
+                       CURDATE()
+                   )
+               END as days_until_birthday,
+               CASE 
+                   WHEN DATE_FORMAT(u.birth_date, '%m-%d') = DATE_FORMAT(CURDATE(), '%m-%d') THEN 'Bugün'
+                   ELSE CONCAT(DATEDIFF(
+                       DATE_ADD(MAKEDATE(YEAR(CURDATE()), 1), 
+                       INTERVAL (DAYOFYEAR(u.birth_date) - 1) DAY),
+                       CURDATE()
+                   ), ' gün sonra')
+               END as birthday_text
         FROM users u 
         WHERE u.birth_date IS NOT NULL
-        AND DATEDIFF(
-            DATE_ADD(MAKEDATE(YEAR(CURDATE()), 1), 
-            INTERVAL (DAYOFYEAR(u.birth_date) - 1) DAY),
-            CURDATE()
-        ) BETWEEN 0 AND 30
-        ORDER BY days_until_birthday ASC
+        AND (
+            DATE_FORMAT(u.birth_date, '%m-%d') = DATE_FORMAT(CURDATE(), '%m-%d')
+            OR DATEDIFF(
+                DATE_ADD(MAKEDATE(YEAR(CURDATE()), 1), 
+                INTERVAL (DAYOFYEAR(u.birth_date) - 1) DAY),
+                CURDATE()
+            ) BETWEEN 1 AND 30
+        )
+        ORDER BY days_until_birthday ASC, u.first_name
         LIMIT 5
     ''')
     upcoming_birthdays = cursor.fetchall()
     
-    # Get upcoming work anniversaries (next 30 days)
+    # Get work anniversaries (next 30 days) - bugün olanları farklı göster
     cursor.execute('''
-        SELECT u.first_name, u.last_name, u.hire_date,
+        SELECT u.first_name, u.last_name, u.hire_date, u.department,
                YEAR(CURDATE()) - YEAR(u.hire_date) as years_of_service,
-               DATEDIFF(
-                   DATE_ADD(MAKEDATE(YEAR(CURDATE()), 1), 
-                   INTERVAL (DAYOFYEAR(u.hire_date) - 1) DAY),
-                   CURDATE()
-               ) as days_until_anniversary
+               CASE 
+                   WHEN DATE_FORMAT(u.hire_date, '%m-%d') = DATE_FORMAT(CURDATE(), '%m-%d') THEN 0
+                   ELSE DATEDIFF(
+                       DATE_ADD(MAKEDATE(YEAR(CURDATE()), 1), 
+                       INTERVAL (DAYOFYEAR(u.hire_date) - 1) DAY),
+                       CURDATE()
+                   )
+               END as days_until_anniversary,
+               CASE 
+                   WHEN DATE_FORMAT(u.hire_date, '%m-%d') = DATE_FORMAT(CURDATE(), '%m-%d') THEN 'Bugün'
+                   ELSE CONCAT(DATEDIFF(
+                       DATE_ADD(MAKEDATE(YEAR(CURDATE()), 1), 
+                       INTERVAL (DAYOFYEAR(u.hire_date) - 1) DAY),
+                       CURDATE()
+                   ), ' gün sonra')
+               END as anniversary_text
         FROM users u 
         WHERE u.hire_date IS NOT NULL
-        AND DATEDIFF(
-            DATE_ADD(MAKEDATE(YEAR(CURDATE()), 1), 
-            INTERVAL (DAYOFYEAR(u.hire_date) - 1) DAY),
-            CURDATE()
-        ) BETWEEN 0 AND 30
-        ORDER BY days_until_anniversary ASC
+        AND u.hire_date <= CURDATE()
+        AND (
+            DATE_FORMAT(u.hire_date, '%m-%d') = DATE_FORMAT(CURDATE(), '%m-%d')
+            OR DATEDIFF(
+                DATE_ADD(MAKEDATE(YEAR(CURDATE()), 1), 
+                INTERVAL (DAYOFYEAR(u.hire_date) - 1) DAY),
+                CURDATE()
+            ) BETWEEN 1 AND 30
+        )
+        ORDER BY days_until_anniversary ASC, years_of_service DESC
         LIMIT 5
     ''')
     upcoming_anniversaries = cursor.fetchall()
     
-    # Get pending tasks - simplified
+    # Basit istatistikler - sadece gerekli olanlar
+    try:
+        cursor.execute('SELECT COUNT(*) as count FROM announcements')
+        total_announcements = cursor.fetchone()['count']
+    except:
+        total_announcements = 0
+        
+    try:
+        cursor.execute('SELECT COUNT(*) as count FROM users')
+        total_users = cursor.fetchone()['count']
+    except:
+        total_users = 0
+        
+    try:
+        cursor.execute('SELECT COUNT(*) as count FROM departments')
+        total_departments = cursor.fetchone()['count']
+    except:
+        total_departments = 0
+        
     try:
         cursor.execute('SELECT COUNT(*) as count FROM tasks WHERE status = %s', ('pending',))
         pending_tasks = cursor.fetchone()['count']
@@ -150,14 +184,13 @@ def dashboard():
     conn.close()
     
     return render_template('dashboard.html', 
-                         total_users=total_users,
-                         total_announcements=total_announcements,
-                         total_departments=total_departments,
-                         unread_messages=unread_messages,
-                         pending_tasks=pending_tasks,
                          announcements=announcements,
                          upcoming_birthdays=upcoming_birthdays,
-                         upcoming_anniversaries=upcoming_anniversaries)
+                         upcoming_anniversaries=upcoming_anniversaries,
+                         total_announcements=total_announcements,
+                         total_users=total_users,
+                         total_departments=total_departments,
+                         pending_tasks=pending_tasks)
 
 @app.route('/announcements')
 @require_login
@@ -193,25 +226,33 @@ def create_announcement():
     flash('Duyuru başarıyla oluşturuldu!', 'success')
     return redirect(url_for('announcements'))
 
+# Database kolonları düzeltiliyor:
+# users.department_id YOK -> users.department VAR
+# users.created_at YOK -> reports için created_at kullanmıyoruz
+# users.phone_number VAR -> phone yerine phone_number kullanıyoruz
+# tasks.assignee_id VAR -> assigned_to_id değil
+# tasks.creator_id VAR -> created_by_id değil  
+# documents.uploader_id VAR -> uploaded_by değil
+
 @app.route('/personnel')
 @require_login
 def personnel():
     conn = get_db_connection()
     cursor = conn.cursor(pymysql.cursors.DictCursor)
     cursor.execute('''
-        SELECT u.*, d.name as department_name 
+        SELECT u.*, d.name as department_name
         FROM users u 
-        LEFT JOIN departments d ON u.department_id = d.id 
+        LEFT JOIN departments d ON u.department = d.name
         ORDER BY u.first_name, u.last_name
     ''')
-    users = cursor.fetchall()
+    personnel = cursor.fetchall()
     
     cursor.execute('SELECT * FROM departments ORDER BY name')
     departments = cursor.fetchall()
     
     conn.close()
     
-    return render_template('personnel.html', users=users, departments=departments)
+    return render_template('personnel.html', personnel=personnel, departments=departments)
 
 @app.route('/departments')
 @require_login
@@ -219,13 +260,11 @@ def departments():
     conn = get_db_connection()
     cursor = conn.cursor(pymysql.cursors.DictCursor)
     cursor.execute('''
-        SELECT d.*, 
-               COUNT(u.id) as employee_count,
-               m.first_name as manager_first_name,
-               m.last_name as manager_last_name
+        SELECT d.*, u.first_name, u.last_name,
+               COUNT(emp.id) as employee_count
         FROM departments d 
-        LEFT JOIN users u ON d.id = u.department_id 
-        LEFT JOIN users m ON d.manager_id = m.id
+        LEFT JOIN users u ON d.manager_id = u.id
+        LEFT JOIN users emp ON emp.department = d.name
         GROUP BY d.id
         ORDER BY d.name
     ''')
@@ -287,10 +326,10 @@ def tasks():
                u1.first_name as creator_first_name, u1.last_name as creator_last_name,
                u2.first_name as assignee_first_name, u2.last_name as assignee_last_name
         FROM tasks t 
-        JOIN users u1 ON t.created_by_id = u1.id 
-        LEFT JOIN users u2 ON t.assigned_to_id = u2.id 
-        WHERE t.assigned_to_id = %s OR t.created_by_id = %s
-        ORDER BY t.created_at DESC
+        JOIN users u1 ON t.creator_id = u1.id 
+        LEFT JOIN users u2 ON t.assignee_id = u2.id 
+        WHERE t.assignee_id = %s OR t.creator_id = %s
+        ORDER BY t.due_date ASC
     ''', (session['user_id'], session['user_id']))
     tasks = cursor.fetchall()
     
@@ -307,12 +346,13 @@ def documents():
     conn = get_db_connection()
     cursor = conn.cursor(pymysql.cursors.DictCursor)
     cursor.execute('''
-        SELECT d.*, u.first_name, u.last_name 
+        SELECT d.*, u.first_name, u.last_name
         FROM documents d 
-        JOIN users u ON d.uploaded_by = u.id 
-        ORDER BY d.created_at DESC
+        LEFT JOIN users u ON d.uploader_id = u.id 
+        ORDER BY d.uploaded_at DESC
     ''')
     documents = cursor.fetchall()
+    
     conn.close()
     
     return render_template('documents.html', documents=documents)
@@ -356,14 +396,14 @@ def users():
     conn = get_db_connection()
     cursor = conn.cursor(pymysql.cursors.DictCursor)
     cursor.execute('''
-        SELECT u.*, d.name as department_name 
+        SELECT u.*, d.name as department_name
         FROM users u 
-        LEFT JOIN departments d ON u.department_id = d.id 
-        ORDER BY u.created_at DESC
+        LEFT JOIN departments d ON u.department = d.name
+        ORDER BY u.first_name, u.last_name
     ''')
     users = cursor.fetchall()
     
-    cursor.execute('SELECT * FROM departments ORDER BY name')
+    cursor.execute('SELECT id, name FROM departments ORDER BY name')
     departments = cursor.fetchall()
     
     conn.close()
@@ -373,35 +413,51 @@ def users():
 @app.route('/users/create', methods=['POST'])
 @require_login
 def create_user():
-    first_name = request.form['first_name']
-    last_name = request.form['last_name']
-    username = request.form['username']
-    email = request.form['email']
-    password = request.form['password']
-    department_id = request.form.get('department_id')
-    position = request.form.get('position')
-    
-    # Hash password
-    hashed_password = generate_password_hash(password)
-    
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    
     try:
+        username = request.form.get('username')
+        password = request.form.get('password')
+        first_name = request.form.get('first_name')
+        last_name = request.form.get('last_name')
+        email = request.form.get('email')
+        phone = request.form.get('phone_number')  # phone_number olarak değiştirildi
+        position = request.form.get('position')
+        department_name = request.form.get('department_name')  # department_id yerine name kullanıyoruz
+        birth_date = request.form.get('birth_date')
+        hire_date = request.form.get('hire_date')
+        
+        if not all([username, password, first_name, last_name, email]):
+            flash('Zorunlu alanları doldurun!', 'error')
+            return redirect(url_for('users'))
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Check if username or email already exists
+        cursor.execute('SELECT id FROM users WHERE username = %s OR email = %s', (username, email))
+        if cursor.fetchone():
+            flash('Kullanıcı adı veya email zaten kullanımda!', 'error')
+            conn.close()
+            return redirect(url_for('users'))
+        
+        # Hash password
+        hashed_password = generate_password_hash(password)
+        
         cursor.execute('''
-            INSERT INTO users (first_name, last_name, username, email, password, department_id, position, created_at)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, NOW())
-        ''', (first_name, last_name, username, email, hashed_password, department_id, position))
+            INSERT INTO users (username, password, first_name, last_name, email, 
+                             phone_number, position, department, birth_date, hire_date)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        ''', (username, hashed_password, first_name, last_name, email, phone, 
+              position, department_name, birth_date, hire_date))
+        
         conn.commit()
+        conn.close()
+        
         flash('Kullanıcı başarıyla oluşturuldu!', 'success')
-    except pymysql.IntegrityError:
-        flash('Bu kullanıcı adı veya email zaten kullanımda!', 'error')
+        return redirect(url_for('users'))
+        
     except Exception as e:
         flash(f'Hata: {str(e)}', 'error')
-    finally:
-        conn.close()
-    
-    return redirect(url_for('users'))
+        return redirect(url_for('users'))
 
 @app.route('/departments/create', methods=['POST'])
 @require_login
@@ -428,17 +484,18 @@ def create_department():
     return redirect(url_for('departments'))
 
 @app.route('/profile')
-@require_login
+@require_login  
 def profile():
     conn = get_db_connection()
     cursor = conn.cursor(pymysql.cursors.DictCursor)
     cursor.execute('''
-        SELECT u.*, d.name as department_name 
+        SELECT u.*, d.name as department_name
         FROM users u 
-        LEFT JOIN departments d ON u.department_id = d.id 
+        LEFT JOIN departments d ON u.department = d.name
         WHERE u.id = %s
     ''', (session['user_id'],))
     user = cursor.fetchone()
+    
     conn.close()
     
     return render_template('profile.html', user=user)
@@ -454,35 +511,46 @@ def reports():
     conn = get_db_connection()
     cursor = conn.cursor(pymysql.cursors.DictCursor)
     
-    # User statistics
-    cursor.execute('SELECT COUNT(*) as count FROM users WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)')
-    new_users_month = cursor.fetchone()['count']
+    # Basit istatistikler - created_at olmadığı için son 30 gün yerine toplam sayılar
+    cursor.execute('SELECT COUNT(*) as count FROM users')
+    total_users = cursor.fetchone()['count']
     
-    # Department statistics
+    cursor.execute('SELECT COUNT(*) as count FROM departments')
+    total_departments = cursor.fetchone()['count']
+    
+    cursor.execute('SELECT COUNT(*) as count FROM announcements')
+    total_announcements = cursor.fetchone()['count']
+    
+    cursor.execute('SELECT COUNT(*) as count FROM messages')
+    total_messages = cursor.fetchone()['count']
+    
+    # Departman dağılımı
     cursor.execute('''
-        SELECT d.name, COUNT(u.id) as user_count 
-        FROM departments d 
-        LEFT JOIN users u ON d.id = u.department_id 
-        GROUP BY d.id, d.name 
-        ORDER BY user_count DESC
+        SELECT u.department, COUNT(*) as count 
+        FROM users u 
+        WHERE u.department IS NOT NULL 
+        GROUP BY u.department 
+        ORDER BY count DESC
     ''')
-    dept_stats = cursor.fetchall()
+    department_distribution = cursor.fetchall()
     
-    # Message statistics
-    cursor.execute('SELECT COUNT(*) as count FROM messages WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)')
-    messages_week = cursor.fetchone()['count']
-    
-    # Task statistics
-    cursor.execute('SELECT status, COUNT(*) as count FROM tasks GROUP BY status')
-    task_stats = cursor.fetchall()
+    # Görev durumları
+    cursor.execute('''
+        SELECT status, COUNT(*) as count 
+        FROM tasks 
+        GROUP BY status
+    ''')
+    task_status = cursor.fetchall()
     
     conn.close()
     
     return render_template('reports.html', 
-                         new_users_month=new_users_month,
-                         dept_stats=dept_stats,
-                         messages_week=messages_week,
-                         task_stats=task_stats)
+                         total_users=total_users,
+                         total_departments=total_departments, 
+                         total_announcements=total_announcements,
+                         total_messages=total_messages,
+                         department_distribution=department_distribution,
+                         task_status=task_status)
 
 # API Endpoints
 @app.route('/api/messages/unread/count')
@@ -515,15 +583,15 @@ def api_users():
     conn = get_db_connection()
     cursor = conn.cursor(pymysql.cursors.DictCursor)
     cursor.execute('''
-        SELECT u.*, d.name as department_name 
+        SELECT u.id, u.first_name, u.last_name, u.department
         FROM users u 
-        LEFT JOIN departments d ON u.department_id = d.id 
         ORDER BY u.first_name, u.last_name
     ''')
     users = cursor.fetchall()
+    
     conn.close()
     
-    return jsonify({'users': users})
+    return jsonify(users)
 
 @app.route('/api/departments')
 @require_login
