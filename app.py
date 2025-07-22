@@ -427,7 +427,8 @@ def personnel_detail(id):
         flash('Personel bulunamadı!', 'error')
         return redirect(url_for('personnel'))
     
-    return render_template('personnel_detail.html', user=user)
+    from datetime import date
+    return render_template('personnel_detail.html', user=user, today=date.today())
 
 @app.route('/personnel/<int:id>/edit', methods=['GET', 'POST'])
 @require_admin
@@ -704,13 +705,17 @@ def reports():
     
     conn.close()
     
+    # Varsayılan değerler (created_at kolonu olmadığı için)
+    new_users_month = 0  # Bu ay yeni kullanıcı yok
+    
     return render_template('reports.html', 
                          total_users=total_users,
                          total_departments=total_departments, 
                          total_announcements=total_announcements,
                          total_messages=total_messages,
                          department_distribution=department_distribution,
-                         task_status=task_status)
+                         task_status=task_status,
+                         new_users_month=new_users_month)
 
 # API Endpoints
 @app.route('/api/messages/unread/count')

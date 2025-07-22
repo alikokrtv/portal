@@ -34,6 +34,8 @@
                         <p class="text-muted mb-2">{{ user.position or 'Pozisyon belirtilmemiş' }}</p>
                         {% if user.department_name %}
                             <span class="badge bg-primary">{{ user.department_name }}</span>
+                        {% elif user.department %}
+                            <span class="badge bg-primary">{{ user.department }}</span>
                         {% endif %}
                         
                         {% if session.is_admin %}
@@ -72,7 +74,7 @@
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label text-muted small">Departman</label>
-                                <div class="fw-medium">{{ user.department or 'Belirtilmemiş' }}</div>
+                                <div class="fw-medium">{{ user.department_name or user.department or 'Belirtilmemiş' }}</div>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label text-muted small">Doğum Tarihi</label>
