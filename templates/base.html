@@ -182,6 +182,10 @@
             min-height: 100vh;
         }
         
+        .main-wrapper.login-page {
+            margin-left: 0;
+        }
+        
                  .topbar {
              background: var(--card);
              border-bottom: 1px solid var(--border);
@@ -556,7 +560,7 @@
     {% endif %}
 
     <!-- Main Content Wrapper -->
-    <div class="main-wrapper">
+    <div class="main-wrapper {{ 'login-page' if request.endpoint == 'login' else '' }}">
         {% if request.endpoint != 'login' %}
         <!-- Top Bar -->
         <header class="topbar">
