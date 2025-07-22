@@ -92,7 +92,9 @@
                                     {% if user.hire_date %}
                                         {{ user.hire_date.strftime('%d.%m.%Y') }}
                                         <small class="text-muted ms-2">
-                                            ({{ ((user.hire_date and (today - user.hire_date).days // 365) or 0) }} yıl)
+                                            {% if user.hire_date %}
+                                                ({{ ((today - user.hire_date).days // 365) if user.hire_date else 0 }} yıl)
+                                            {% endif %}
                                         </small>
                                     {% else %}
                                         Belirtilmemiş

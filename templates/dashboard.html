@@ -147,47 +147,7 @@
     </div>
 </div>
 
-<!-- Hızlı İşlemler -->
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="bi bi-lightning-charge me-2"></i>
-                    Hızlı İşlemler
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-3 mb-2">
-                        <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#newAnnouncementModal">
-                            <i class="bi bi-megaphone me-2"></i>
-                            Yeni Duyuru
-                        </button>
-                    </div>
-                    <div class="col-md-3 mb-2">
-                        <button class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#newMessageModal">
-                            <i class="bi bi-envelope me-2"></i>
-                            Mesaj Gönder
-                        </button>
-                    </div>
-                    <div class="col-md-3 mb-2">
-                        <a href="{{ url_for('tasks') }}" class="btn btn-warning w-100">
-                            <i class="bi bi-check-square me-2"></i>
-                            Görevlerim
-                        </a>
-                    </div>
-                    <div class="col-md-3 mb-2">
-                        <a href="{{ url_for('special_days') }}" class="btn btn-info w-100">
-                            <i class="bi bi-calendar-event me-2"></i>
-                            Özel Günler
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+
 
 <!-- Modals -->
 {% include 'modals/new_announcement_modal.html' %}

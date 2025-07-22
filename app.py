@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, s
 from werkzeug.security import generate_password_hash, check_password_hash
 import pymysql
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from dotenv import load_dotenv
 
 # Türkçe aylar
@@ -40,7 +40,7 @@ MYSQL_CONFIG = {
 
 # Database connection with fallback passwords
 def get_db_connection():
-    passwords_to_try = ['255223Rtv', '', 'root', 'admin', '123456', '2552232']
+    passwords_to_try = ['255223Rtv', '255223', '', 'root', 'admin', '123456', '2552232']
     
     for password in passwords_to_try:
         try:
@@ -215,7 +215,7 @@ def dashboard():
     
     # Get work anniversaries (next 30 days) - bugün olanları farklı göster
     cursor.execute('''
-        SELECT u.first_name, u.last_name, u.hire_date, u.department,
+        SELECT u.first_name, u.last_name, u.hire_date, d.name as department,
                YEAR(CURDATE()) - YEAR(u.hire_date) as years_of_service,
                CASE 
                    WHEN DATE_FORMAT(u.hire_date, '%m-%d') = DATE_FORMAT(CURDATE(), '%m-%d') THEN 0
@@ -234,6 +234,7 @@ def dashboard():
                    ), ' gün sonra')
                END as anniversary_text
         FROM users u 
+        LEFT JOIN departments d ON u.department_id = d.id
         WHERE u.hire_date IS NOT NULL
         AND u.hire_date <= CURDATE()
         AND (
@@ -348,7 +349,7 @@ def personnel():
     cursor.execute('''
         SELECT u.*, d.name as department_name
         FROM users u 
-        LEFT JOIN departments d ON u.department = d.name
+        LEFT JOIN departments d ON u.department_id = d.id
         ORDER BY u.first_name, u.last_name
     ''')
     personnel = cursor.fetchall()
@@ -371,7 +372,7 @@ def create_personnel():
         email = request.form.get('email')
         phone = request.form.get('phone_number')
         position = request.form.get('position')
-        department_name = request.form.get('department_name')
+        department_id = request.form.get('department_id')
         birth_date = request.form.get('birth_date')
         hire_date = request.form.get('hire_date')
         
@@ -394,10 +395,10 @@ def create_personnel():
         
         cursor.execute('''
             INSERT INTO users (username, password, first_name, last_name, email, 
-                             phone_number, position, department, birth_date, hire_date)
+                             phone_number, position, department_id, birth_date, hire_date)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         ''', (username, hashed_password, first_name, last_name, email, phone, 
-              position, department_name, birth_date, hire_date))
+              position, department_id if department_id else None, birth_date, hire_date))
         
         conn.commit()
         conn.close()
@@ -417,7 +418,7 @@ def personnel_detail(id):
     cursor.execute('''
         SELECT u.*, d.name as department_name
         FROM users u 
-        LEFT JOIN departments d ON u.department = d.name
+        LEFT JOIN departments d ON u.department_id = d.id
         WHERE u.id = %s
     ''', (id,))
     user = cursor.fetchone()
@@ -427,7 +428,11 @@ def personnel_detail(id):
         flash('Personel bulunamadı!', 'error')
         return redirect(url_for('personnel'))
     
-    from datetime import date
+    # Tarih türlerini uyumlu hale getir
+    if user.get('hire_date') and hasattr(user['hire_date'], 'date'):
+        # Eğer datetime ise date'e çevir
+        user['hire_date'] = user['hire_date'].date()
+    
     return render_template('personnel_detail.html', user=user, today=date.today())
 
 @app.route('/personnel/<int:id>/edit', methods=['GET', 'POST'])
@@ -447,9 +452,9 @@ def personnel_edit(id):
         cursor.execute('''
             UPDATE users 
             SET first_name = %s, last_name = %s, email = %s, 
-                position = %s, department = %s, phone_number = %s
+                position = %s, department_id = %s, phone_number = %s
             WHERE id = %s
-        ''', (first_name, last_name, email, position, department, phone, id))
+        ''', (first_name, last_name, email, position, department if department else None, phone, id))
         conn.commit()
         conn.close()
         
@@ -460,7 +465,7 @@ def personnel_edit(id):
     cursor.execute('''
         SELECT u.*, d.name as department_name
         FROM users u 
-        LEFT JOIN departments d ON u.department = d.name
+        LEFT JOIN departments d ON u.department_id = d.id
         WHERE u.id = %s
     ''', (id,))
     user = cursor.fetchone()
@@ -485,7 +490,7 @@ def departments():
                COUNT(emp.id) as employee_count
         FROM departments d 
         LEFT JOIN users u ON d.manager_id = u.id
-        LEFT JOIN users emp ON emp.department = d.name
+        LEFT JOIN users emp ON emp.department_id = d.id
         GROUP BY d.id
         ORDER BY d.name
     ''')
@@ -652,7 +657,7 @@ def profile():
     cursor.execute('''
         SELECT u.*, d.name as department_name
         FROM users u 
-        LEFT JOIN departments d ON u.department = d.name
+        LEFT JOIN departments d ON u.department_id = d.id
         WHERE u.id = %s
     ''', (session['user_id'],))
     user = cursor.fetchone()
@@ -687,10 +692,10 @@ def reports():
     
     # Departman dağılımı
     cursor.execute('''
-        SELECT u.department, COUNT(*) as count 
+        SELECT d.name as department, COUNT(u.id) as count 
         FROM users u 
-        WHERE u.department IS NOT NULL 
-        GROUP BY u.department 
+        INNER JOIN departments d ON u.department_id = d.id
+        GROUP BY d.id, d.name
         ORDER BY count DESC
     ''')
     department_distribution = cursor.fetchall()
@@ -748,8 +753,9 @@ def api_users():
     conn = get_db_connection()
     cursor = conn.cursor(pymysql.cursors.DictCursor)
     cursor.execute('''
-        SELECT u.id, u.first_name, u.last_name, u.department
+        SELECT u.id, u.first_name, u.last_name, d.name as department
         FROM users u 
+        LEFT JOIN departments d ON u.department_id = d.id
         ORDER BY u.first_name, u.last_name
     ''')
     users = cursor.fetchall()

@@ -54,8 +54,8 @@
                             <select class="form-control" id="department" name="department">
                                 <option value="">Departman Seçin</option>
                                 {% for dept in departments %}
-                                    <option value="{{ dept.name }}" 
-                                            {% if dept.name == user.department %}selected{% endif %}>
+                                    <option value="{{ dept.id }}" 
+                                            {% if dept.id == user.department_id %}selected{% endif %}>
                                         {{ dept.name }}
                                     </option>
                                 {% endfor %}
