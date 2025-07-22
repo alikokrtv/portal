@@ -430,6 +430,7 @@
                 transform: translateX(-100%);
                 transition: transform 0.3s ease;
                 z-index: 1050;
+                background: white !important;
             }
             
             .sidebar.show {
@@ -466,12 +467,12 @@
 </head>
 <body>
     <!-- Sidebar -->
+    {% if session.user_id and request.endpoint != 'login' %}
     <nav class="sidebar">
         <div class="sidebar-content">
             <!-- Logo -->
             <a href="{{ url_for('dashboard') }}" class="logo">
-                <img src="https://pluskitchen.com.tr/images/logo.png" alt="Plus Kitchen Logo" style="height: 35px; width: auto; margin-right: 8px;"> 
-                Plus Kitchen Portal
+                <img src="https://pluskitchen.com.tr/images/logo.png" alt="Plus Kitchen Logo" style="height: 35px; width: auto;"> 
             </a>
             
             {% if session.user_id %}
@@ -552,6 +553,7 @@
             </nav>
         </div>
     </nav>
+    {% endif %}
 
     <!-- Main Content Wrapper -->
     <div class="main-wrapper">
@@ -651,6 +653,18 @@
                 </div>
             {% endif %}
         {% endwith %}
+        
+        <!-- Welcome Header -->
+        {% if session.user_id and request.endpoint != 'login' %}
+        <div class="welcome-header">
+            <div class="container-fluid px-4 py-2 bg-light border-bottom">
+                <small class="text-muted">
+                    <i class="bi bi-person-circle me-1"></i>
+                    Merhaba, <strong>{{ session.first_name }} {{ session.last_name }}</strong>
+                </small>
+            </div>
+        </div>
+        {% endif %}
         
         <!-- Main Content -->
         <main class="main-content">

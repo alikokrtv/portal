@@ -17,12 +17,6 @@
             {% endfor %}
         </select>
         <input type="text" class="form-control" placeholder="Personel ara..." style="width: 250px;" id="searchPersonnel">
-        {% if session.is_admin %}
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newPersonnelModal">
-            <i class="bi bi-plus-circle me-2"></i>
-            Yeni Personel
-        </button>
-        {% endif %}
     </div>
 </div>
 
