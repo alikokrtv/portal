@@ -5,8 +5,11 @@ import os
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+# Load environment variables (optional)
+try:
+    load_dotenv()
+except:
+    pass  # .env file not found, using defaults
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'plus-kitchen-secret-key-2024')
@@ -33,6 +36,17 @@ def require_login(f):
     wrapper.__name__ = f.__name__
     return wrapper
 
+def require_admin(f):
+    def wrapper(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        if not session.get('is_admin', False):
+            flash('Bu işlem için yönetici yetkisi gereklidir.', 'error')
+            return redirect(url_for('dashboard'))
+        return f(*args, **kwargs)
+    wrapper.__name__ = f.__name__
+    return wrapper
+
 # Routes
 @app.route('/')
 def index():
@@ -48,7 +62,15 @@ def login():
         
         conn = get_db_connection()
         cursor = conn.cursor(pymysql.cursors.DictCursor)
-        cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
+        
+        # Kullanıcı ve rol bilgilerini al
+        cursor.execute('''
+            SELECT u.*, r.name as role_name, r.id as role_id
+            FROM users u 
+            LEFT JOIN user_roles ur ON u.id = ur.user_id
+            LEFT JOIN roles r ON ur.role_id = r.id
+            WHERE u.username = %s
+        ''', (username,))
         user = cursor.fetchone()
         conn.close()
         
@@ -57,6 +79,13 @@ def login():
             session['username'] = user['username']
             session['first_name'] = user['first_name']
             session['last_name'] = user['last_name']
+            session['email'] = user['email']
+            session['role_id'] = user.get('role_id', 18)  # Default: Standart Kullanıcı
+            session['role_name'] = user.get('role_name', 'Standart Kullanıcı')
+            
+            # Admin veya İK yöneticisi kontrolü
+            session['is_admin'] = user.get('role_name') in ['Admin', 'İK Yöneticisi', 'İçerik Yöneticisi']
+            
             flash('Başarıyla giriş yaptınız!', 'success')
             return redirect(url_for('dashboard'))
         else:
@@ -156,7 +185,7 @@ def dashboard():
     ''')
     upcoming_anniversaries = cursor.fetchall()
     
-    # Basit istatistikler - sadece gerekli olanlar
+    # Basit istatistikler - intranet için gerekli olanlar
     try:
         cursor.execute('SELECT COUNT(*) as count FROM announcements')
         total_announcements = cursor.fetchone()['count']
@@ -165,21 +194,15 @@ def dashboard():
         
     try:
         cursor.execute('SELECT COUNT(*) as count FROM users')
-        total_users = cursor.fetchone()['count']
+        total_personnel = cursor.fetchone()['count']
     except:
-        total_users = 0
+        total_personnel = 0
         
     try:
         cursor.execute('SELECT COUNT(*) as count FROM departments')
         total_departments = cursor.fetchone()['count']
     except:
         total_departments = 0
-        
-    try:
-        cursor.execute('SELECT COUNT(*) as count FROM tasks WHERE status = %s', ('pending',))
-        pending_tasks = cursor.fetchone()['count']
-    except:
-        pending_tasks = 0
     
     conn.close()
     
@@ -188,9 +211,8 @@ def dashboard():
                          upcoming_birthdays=upcoming_birthdays,
                          upcoming_anniversaries=upcoming_anniversaries,
                          total_announcements=total_announcements,
-                         total_users=total_users,
-                         total_departments=total_departments,
-                         pending_tasks=pending_tasks)
+                         total_personnel=total_personnel,
+                         total_departments=total_departments)
 
 @app.route('/announcements')
 @require_login
@@ -252,7 +274,56 @@ def personnel():
     
     conn.close()
     
-    return render_template('personnel.html', personnel=personnel, departments=departments)
+    return render_template('personnel.html', personnel=personnel, departments=departments, users=personnel)
+
+@app.route('/personnel/create', methods=['POST'])
+@require_admin
+def create_personnel():
+    try:
+        username = request.form.get('username')
+        password = request.form.get('password')
+        first_name = request.form.get('first_name')
+        last_name = request.form.get('last_name')
+        email = request.form.get('email')
+        phone = request.form.get('phone_number')
+        position = request.form.get('position')
+        department_name = request.form.get('department_name')
+        birth_date = request.form.get('birth_date')
+        hire_date = request.form.get('hire_date')
+        
+        if not all([username, password, first_name, last_name, email]):
+            flash('Zorunlu alanları doldurun!', 'error')
+            return redirect(url_for('personnel'))
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Check if username or email already exists
+        cursor.execute('SELECT id FROM users WHERE username = %s OR email = %s', (username, email))
+        if cursor.fetchone():
+            flash('Kullanıcı adı veya email zaten kullanımda!', 'error')
+            conn.close()
+            return redirect(url_for('personnel'))
+        
+        # Hash password
+        hashed_password = generate_password_hash(password)
+        
+        cursor.execute('''
+            INSERT INTO users (username, password, first_name, last_name, email, 
+                             phone_number, position, department, birth_date, hire_date)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        ''', (username, hashed_password, first_name, last_name, email, phone, 
+              position, department_name, birth_date, hire_date))
+        
+        conn.commit()
+        conn.close()
+        
+        flash('Personel başarıyla eklendi!', 'success')
+        return redirect(url_for('personnel'))
+        
+    except Exception as e:
+        flash(f'Hata: {str(e)}', 'error')
+        return redirect(url_for('personnel'))
 
 @app.route('/departments')
 @require_login
@@ -276,6 +347,35 @@ def departments():
     conn.close()
     
     return render_template('departments.html', departments=departments, users=users)
+
+@app.route('/departments/create', methods=['POST'])
+@require_admin
+def create_department():
+    name = request.form.get('name', '').strip()
+    description = request.form.get('description', '').strip()
+    manager_id = request.form.get('manager_id')
+    location = request.form.get('location', '').strip()
+    
+    if not name:
+        flash('Departman adı gereklidir.', 'error')
+        return redirect(url_for('departments'))
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute('''
+            INSERT INTO departments (name, description, manager_id, location) 
+            VALUES (%s, %s, %s, %s)
+        ''', (name, description if description else None, manager_id if manager_id else None, location if location else None))
+        conn.commit()
+        flash(f'"{name}" departmanı başarıyla eklendi!', 'success')
+    except Exception as e:
+        flash('Departman eklenirken bir hata oluştu. Bu isimde departman zaten var olabilir.', 'error')
+    finally:
+        conn.close()
+    
+    return redirect(url_for('departments'))
 
 @app.route('/messages')
 @require_login
@@ -390,74 +490,7 @@ def special_days():
                          birthdays=birthdays_this_month,
                          anniversaries=anniversaries_this_month)
 
-@app.route('/users')
-@require_login
-def users():
-    conn = get_db_connection()
-    cursor = conn.cursor(pymysql.cursors.DictCursor)
-    cursor.execute('''
-        SELECT u.*, d.name as department_name
-        FROM users u 
-        LEFT JOIN departments d ON u.department = d.name
-        ORDER BY u.first_name, u.last_name
-    ''')
-    users = cursor.fetchall()
-    
-    cursor.execute('SELECT id, name FROM departments ORDER BY name')
-    departments = cursor.fetchall()
-    
-    conn.close()
-    
-    return render_template('users.html', users=users, departments=departments)
-
-@app.route('/users/create', methods=['POST'])
-@require_login
-def create_user():
-    try:
-        username = request.form.get('username')
-        password = request.form.get('password')
-        first_name = request.form.get('first_name')
-        last_name = request.form.get('last_name')
-        email = request.form.get('email')
-        phone = request.form.get('phone_number')  # phone_number olarak değiştirildi
-        position = request.form.get('position')
-        department_name = request.form.get('department_name')  # department_id yerine name kullanıyoruz
-        birth_date = request.form.get('birth_date')
-        hire_date = request.form.get('hire_date')
-        
-        if not all([username, password, first_name, last_name, email]):
-            flash('Zorunlu alanları doldurun!', 'error')
-            return redirect(url_for('users'))
-        
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        # Check if username or email already exists
-        cursor.execute('SELECT id FROM users WHERE username = %s OR email = %s', (username, email))
-        if cursor.fetchone():
-            flash('Kullanıcı adı veya email zaten kullanımda!', 'error')
-            conn.close()
-            return redirect(url_for('users'))
-        
-        # Hash password
-        hashed_password = generate_password_hash(password)
-        
-        cursor.execute('''
-            INSERT INTO users (username, password, first_name, last_name, email, 
-                             phone_number, position, department, birth_date, hire_date)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        ''', (username, hashed_password, first_name, last_name, email, phone, 
-              position, department_name, birth_date, hire_date))
-        
-        conn.commit()
-        conn.close()
-        
-        flash('Kullanıcı başarıyla oluşturuldu!', 'success')
-        return redirect(url_for('users'))
-        
-    except Exception as e:
-        flash(f'Hata: {str(e)}', 'error')
-        return redirect(url_for('users'))
+# Users route kaldırıldı - personnel ile birleştirildi
 
 @app.route('/departments/create', methods=['POST'])
 @require_login

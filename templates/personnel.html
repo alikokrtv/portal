@@ -17,6 +17,12 @@
             {% endfor %}
         </select>
         <input type="text" class="form-control" placeholder="Personel ara..." style="width: 250px;" id="searchPersonnel">
+        {% if session.is_admin %}
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newPersonnelModal">
+            <i class="bi bi-plus-circle me-2"></i>
+            Yeni Personel
+        </button>
+        {% endif %}
     </div>
 </div>
 
@@ -225,4 +231,108 @@ document.addEventListener('DOMContentLoaded', function() {
     // Any initialization code
 });
 </script>
+
+<!-- Yeni Personel Modal -->
+{% if session.is_admin %}
+<div class="modal fade" id="newPersonnelModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-person-plus me-2"></i>
+                    Yeni Personel Ekle
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('create_personnel') }}" method="POST">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="personnelFirstName" class="form-label">Ad *</label>
+                                <input type="text" class="form-control" id="personnelFirstName" name="first_name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="personnelLastName" class="form-label">Soyad *</label>
+                                <input type="text" class="form-control" id="personnelLastName" name="last_name" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="personnelUsername" class="form-label">Kullanıcı Adı *</label>
+                                <input type="text" class="form-control" id="personnelUsername" name="username" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="personnelPassword" class="form-label">Şifre *</label>
+                                <input type="password" class="form-control" id="personnelPassword" name="password" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="personnelEmail" class="form-label">Email *</label>
+                                <input type="email" class="form-control" id="personnelEmail" name="email" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="personnelPhone" class="form-label">Telefon</label>
+                                <input type="text" class="form-control" id="personnelPhone" name="phone_number">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="personnelDepartment" class="form-label">Departman</label>
+                                <select class="form-control" id="personnelDepartment" name="department_name">
+                                    <option value="">Seçiniz...</option>
+                                    {% for dept in departments %}
+                                        <option value="{{ dept.name }}">{{ dept.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="personnelPosition" class="form-label">Pozisyon</label>
+                                <input type="text" class="form-control" id="personnelPosition" name="position">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="personnelBirthDate" class="form-label">Doğum Tarihi</label>
+                                <input type="date" class="form-control" id="personnelBirthDate" name="birth_date">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="personnelHireDate" class="form-label">İşe Başlama Tarihi</label>
+                                <input type="date" class="form-control" id="personnelHireDate" name="hire_date">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check me-2"></i>
+                        Personel Ekle
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 {% endblock %} 

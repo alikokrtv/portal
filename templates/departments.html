@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block title %}Departmanlar{% endblock %}
+{% block page_title %}Departman Yönetimi{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-building me-2"></i>
+                    Departman Listesi
+                </h5>
+                {% if session.is_admin %}
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newDepartmentModal">
+                    <i class="bi bi-plus-circle me-2"></i>
+                    Yeni Departman
+                </button>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if departments %}
+                <div class="row">
+                    {% for dept in departments %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card border">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <h5 class="card-title mb-2">{{ dept.name }}</h5>
+                                        {% if dept.description %}
+                                        <p class="text-muted mb-2">{{ dept.description }}</p>
+                                        {% endif %}
+                                        
+                                        <div class="mb-2">
+                                            <small class="text-muted">Personel Sayısı:</small>
+                                            <span class="badge bg-primary">{{ dept.employee_count }} kişi</span>
+                                        </div>
+                                        
+                                        {% if dept.first_name %}
+                                        <div class="mb-2">
+                                            <small class="text-muted">Yönetici:</small>
+                                            <strong>{{ dept.first_name }} {{ dept.last_name }}</strong>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        {% if dept.location %}
+                                        <div class="mb-2">
+                                            <small class="text-muted">Lokasyon:</small>
+                                            <span>{{ dept.location }}</span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    {% if session.is_admin %}
+                                    <div class="dropdown">
+                                        <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="#" onclick="editDepartment({{ dept.id }})">
+                                                <i class="bi bi-pencil me-2"></i>Düzenle
+                                            </a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li><a class="dropdown-item text-danger" href="#" onclick="deleteDepartment({{ dept.id }})">
+                                                <i class="bi bi-trash me-2"></i>Sil
+                                            </a></li>
+                                        </ul>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-building text-muted" style="font-size: 3rem;"></i>
+                    <h5 class="text-muted mt-3">Henüz departman bulunmuyor</h5>
+                    {% if session.is_admin %}
+                    <p class="text-muted">İlk departmanınızı ekleyerek başlayın.</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-graph-up me-2"></i>
+                    Departman İstatistikleri
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <div class="text-center">
+                            <h3 class="text-primary mb-1">{{ departments|length }}</h3>
+                            <small class="text-muted">Toplam Departman</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-center">
+                            <h3 class="text-success mb-1">{{ departments|map(attribute='employee_count')|sum }}</h3>
+                            <small class="text-muted">Toplam Personel</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr class="my-3">
+                
+                <h6 class="mb-3">Departman Dağılımı</h6>
+                <div class="space-y-2">
+                    {% for dept in departments[:5] %}
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="small">{{ dept.name }}</span>
+                        <span class="badge bg-light text-dark">{{ dept.employee_count }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if session.is_admin %}
+<!-- Yeni Departman Modal -->
+<div class="modal fade" id="newDepartmentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-building me-2"></i>
+                    Yeni Departman Ekle
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('create_department') }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="departmentName" class="form-label">Departman Adı *</label>
+                        <input type="text" class="form-control" id="departmentName" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="departmentDescription" class="form-label">Açıklama</label>
+                        <textarea class="form-control" id="departmentDescription" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="departmentManager" class="form-label">Departman Yöneticisi</label>
+                        <select class="form-control" id="departmentManager" name="manager_id">
+                            <option value="">Seçiniz...</option>
+                            {% for user in users %}
+                                <option value="{{ user.id }}">{{ user.first_name }} {{ user.last_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="departmentLocation" class="form-label">Lokasyon</label>
+                        <input type="text" class="form-control" id="departmentLocation" name="location" placeholder="Şehir, Bina, Kat vb.">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check me-2"></i>
+                        Departman Ekle
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+{% if session.is_admin %}
+function editDepartment(id) {
+    // Departman düzenleme modal'ını aç
+    console.log('Edit department:', id);
+}
+
+function deleteDepartment(id) {
+    if (confirm('Bu departmanı silmek istediğinizden emin misiniz?')) {
+        window.location.href = '/departments/delete/' + id;
+    }
+}
+{% endif %}
+</script>
+{% endblock %} 

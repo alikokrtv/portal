@@ -4,68 +4,40 @@
 {% block page_title %}Plus Kitchen Portal{% endblock %}
 
 {% block content %}
-<!-- Üst İstatistik Kartları - Basitleştirildi -->
+<!-- Basit İstatistik Sayıları -->
 <div class="row mb-4">
     <div class="col-md-3 mb-3">
         <div class="card text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h5 class="card-title text-white">Duyurular</h5>
-                        <h2 class="text-white">{{ total_announcements }}</h2>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="bi bi-megaphone" style="font-size: 2rem;"></i>
-                    </div>
-                </div>
+            <div class="card-body text-center">
+                <h2 class="text-white mb-1">{{ total_announcements }}</h2>
+                <p class="text-white mb-0">Toplam Duyuru</p>
             </div>
         </div>
     </div>
     
     <div class="col-md-3 mb-3">
         <div class="card text-white" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h5 class="card-title text-white">Bekleyen Görevler</h5>
-                        <h2 class="text-white">{{ pending_tasks }}</h2>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="bi bi-check-square" style="font-size: 2rem;"></i>
-                    </div>
-                </div>
+            <div class="card-body text-center">
+                <h2 class="text-white mb-1">{{ total_personnel }}</h2>
+                <p class="text-white mb-0">Toplam Personel</p>
             </div>
         </div>
     </div>
     
     <div class="col-md-3 mb-3">
         <div class="card text-white" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h5 class="card-title text-white">Yaklaşan Doğum Günleri</h5>
-                        <h2 class="text-white">{{ upcoming_birthdays|length }}</h2>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="bi bi-calendar-heart" style="font-size: 2rem;"></i>
-                    </div>
-                </div>
+            <div class="card-body text-center">
+                <h2 class="text-white mb-1">{{ total_departments }}</h2>
+                <p class="text-white mb-0">Toplam Departman</p>
             </div>
         </div>
     </div>
     
     <div class="col-md-3 mb-3">
-        <div class="card text-white" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h5 class="card-title text-dark">İş Yıl Dönümleri</h5>
-                        <h2 class="text-dark">{{ upcoming_anniversaries|length }}</h2>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="bi bi-award text-dark" style="font-size: 2rem;"></i>
-                    </div>
-                </div>
+        <div class="card text-white" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+            <div class="card-body text-center">
+                <h2 class="text-white mb-1">{{ upcoming_birthdays|length }}</h2>
+                <p class="text-white mb-0">Yaklaşan Doğum Günü</p>
             </div>
         </div>
     </div>
