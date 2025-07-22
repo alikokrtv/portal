@@ -231,7 +231,7 @@ def announcements():
     return render_template('announcements.html', announcements=announcements)
 
 @app.route('/announcements/create', methods=['POST'])
-@require_login
+@require_admin
 def create_announcement():
     title = request.form['title']
     content = request.form['content']
@@ -492,29 +492,7 @@ def special_days():
 
 # Users route kaldırıldı - personnel ile birleştirildi
 
-@app.route('/departments/create', methods=['POST'])
-@require_login
-def create_department():
-    name = request.form['name']
-    description = request.form.get('description', '')
-    manager_id = request.form.get('manager_id')
-    
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    
-    try:
-        cursor.execute('''
-            INSERT INTO departments (name, description, manager_id)
-            VALUES (%s, %s, %s)
-        ''', (name, description, manager_id if manager_id else None))
-        conn.commit()
-        flash('Departman başarıyla oluşturuldu!', 'success')
-    except Exception as e:
-        flash(f'Hata: {str(e)}', 'error')
-    finally:
-        conn.close()
-    
-    return redirect(url_for('departments'))
+# Duplicate create_department removed
 
 @app.route('/profile')
 @require_login  
@@ -649,7 +627,8 @@ def api_departments():
 
 if __name__ == '__main__':
     app.run(
-        debug=os.environ.get('FLASK_DEBUG', 'False').lower() == 'true',
-        host=os.environ.get('HOST', '0.0.0.0'),
-        port=int(os.environ.get('PORT', 6600))
+        debug=True,
+        host='0.0.0.0',
+        port=6600,
+        load_dotenv=False  # .env problemi için devre dışı
     ) 
