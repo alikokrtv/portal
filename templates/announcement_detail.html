@@ -25,9 +25,6 @@
                         <div>
                             <h4 class="mb-0">{{ announcement.title }}</h4>
                             <small class="text-muted">
-                                <i class="bi bi-person me-1"></i>
-                                {{ announcement.first_name }} {{ announcement.last_name }}
-                                <span class="mx-2">•</span>
                                 <i class="bi bi-calendar3 me-1"></i>
                                 {{ announcement.created_at.strftime('%d %B %Y, %H:%M') if announcement.created_at else 'Tarih bilinmiyor' }}
                             </small>
@@ -51,14 +48,7 @@
                     {{ announcement.content|nl2br|safe if announcement.content else 'İçerik bulunamadı.' }}
                 </div>
             </div>
-            {% if announcement.category %}
-            <div class="card-footer bg-light">
-                <div class="d-flex align-items-center">
-                    <i class="bi bi-tag me-2 text-muted"></i>
-                    <span class="badge bg-primary">{{ announcement.category }}</span>
-                </div>
-            </div>
-            {% endif %}
+
         </div>
     </div>
 </div>

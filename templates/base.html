@@ -536,6 +536,12 @@
                     <i class="bi bi-building"></i>
                     <span>Departmanlar</span>
                 </a>
+                {% if session.can_reserve_rooms %}
+                <a class="nav-link {{ 'active' if request.endpoint == 'meeting_rooms' else '' }}" href="{{ url_for('meeting_rooms') }}">
+                    <i class="bi bi-calendar3"></i>
+                    <span>Toplantı Odaları</span>
+                </a>
+                {% endif %}
                 
                 <!-- Raporlar & Analitics -->
                 <div class="nav-section-title">Analitik</div>

@@ -1,0 +1,384 @@
+{% extends "base.html" %}
+
+{% block title %}Toplantı Odaları{% endblock %}
+{% block page_title %}Toplantı Odası Rezervasyonu{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Sol Taraf - Rezervasyon Formu -->
+    <div class="col-lg-8 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-calendar-plus me-2"></i>
+                    Yeni Rezervasyon
+                </h5>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('reserve_room') }}" method="POST" id="reservationForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="room_id" class="form-label">Toplantı Odası</label>
+                            <select class="form-control" id="room_id" name="room_id" required>
+                                <option value="">Oda seçin...</option>
+                                {% for room in rooms %}
+                                <option value="{{ room.id }}" data-capacity="{{ room.capacity }}">
+                                    {{ room.name }} ({{ room.capacity }} kişi)
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="reservation_date" class="form-label">Tarih</label>
+                            <input type="date" class="form-control" id="reservation_date" name="reservation_date" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="start_time" class="form-label">Başlangıç Saati</label>
+                            <input type="time" class="form-control" id="start_time" name="start_time" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="end_time" class="form-label">Bitiş Saati</label>
+                            <input type="time" class="form-control" id="end_time" name="end_time" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="purpose" class="form-label">Toplantı Amacı</label>
+                        <textarea class="form-control" id="purpose" name="purpose" rows="3" 
+                                  placeholder="Toplantının amacını kısaca açıklayın..."></textarea>
+                    </div>
+                    
+                    <!-- Seçilen Oda Bilgileri -->
+                    <div id="roomInfo" class="alert alert-info" style="display: none;">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <div id="roomDetails"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Çakışan Rezervasyonlar -->
+                    <div id="conflictAlert" class="alert alert-warning" style="display: none;">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <strong>Dikkat:</strong> Bu saatlerde başka rezervasyonlar var!
+                        <div id="conflictList" class="mt-2"></div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <button type="button" class="btn btn-outline-secondary" onclick="checkAvailability()">
+                            <i class="bi bi-search me-2"></i>
+                            Müsaitlik Kontrol Et
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle me-2"></i>
+                            Rezervasyon Yap
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sağ Taraf - Oda Bilgileri -->
+    <div class="col-lg-4 mb-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-building me-2"></i>
+                    Mevcut Odalar
+                </h5>
+            </div>
+            <div class="card-body">
+                {% for room in rooms %}
+                <div class="mb-3 p-3 border rounded">
+                    <h6 class="mb-2">{{ room.name }}</h6>
+                    <p class="text-muted mb-2 small">{{ room.description }}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge bg-primary">{{ room.capacity }} kişi</span>
+                        <button class="btn btn-sm btn-outline-info" onclick="showRoomReservations({{ room.id }}, '{{ room.name }}')">
+                            <i class="bi bi-calendar3"></i> Rezervasyonlar
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Bugünkü Rezervasyonlar -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-calendar-check me-2"></i>
+                    Bugünkü Rezervasyonlar
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center text-muted py-3">
+                    <i class="bi bi-calendar-x display-6 mb-2"></i>
+                    <p class="mb-0">Bugün rezervasyon yok</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Yaklaşan Rezervasyonlar -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-calendar2-week me-2"></i>
+                    Yaklaşan Rezervasyonlar (30 Gün)
+                </h5>
+                <span class="badge bg-secondary">{{ reservations|length }} rezervasyon</span>
+            </div>
+            <div class="card-body">
+                {% if reservations %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Tarih</th>
+                                <th>Saat</th>
+                                <th>Oda</th>
+                                <th>Rezerve Eden</th>
+                                <th>Amaç</th>
+                                <th>İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for reservation in reservations %}
+                            <tr>
+                                <td>{{ reservation.reservation_date.strftime('%d/%m/%Y') }}</td>
+                                <td>{{ reservation.start_time.strftime('%H:%M') }} - {{ reservation.end_time.strftime('%H:%M') }}</td>
+                                <td>
+                                    <span class="badge bg-primary">{{ reservation.room_name }}</span>
+                                </td>
+                                <td>{{ reservation.user_name }}</td>
+                                <td>{{ reservation.purpose[:50] }}{% if reservation.purpose|length > 50 %}...{% endif %}</td>
+                                <td>
+                                    {% if reservation.user_id == session.user_id or session.is_admin %}
+                                    <a href="{{ url_for('cancel_reservation', id=reservation.id) }}" 
+                                       class="btn btn-sm btn-outline-danger"
+                                       onclick="return confirm('Rezervasyonu iptal etmek istediğinizden emin misiniz?')">
+                                        <i class="bi bi-trash"></i> İptal
+                                    </a>
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-calendar2-week display-4 mb-3"></i>
+                    <h5>Yaklaşan rezervasyon bulunmuyor</h5>
+                    <p>Yukarıdaki formu kullanarak yeni bir rezervasyon oluşturabilirsiniz.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Room Reservations Modal -->
+<div class="modal fade" id="roomReservationsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="roomModalTitle">
+                    <i class="bi bi-calendar3 me-2"></i>
+                    Oda Rezervasyonları
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="modalDate" class="form-label">Tarih Seçin:</label>
+                    <input type="date" class="form-control" id="modalDate">
+                </div>
+                <div id="modalReservations">
+                    <div class="text-center py-4">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Yükleniyor...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Global variables
+let selectedRoomId = null;
+
+// Set minimum date to today
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('reservation_date').value = today;
+    document.getElementById('modalDate').value = today;
+    
+    // Room selection change
+    document.getElementById('room_id').addEventListener('change', function() {
+        selectedRoomId = this.value;
+        const selectedOption = this.options[this.selectedIndex];
+        
+        if (selectedRoomId) {
+            const capacity = selectedOption.dataset.capacity;
+            const roomName = selectedOption.text;
+            
+            document.getElementById('roomDetails').innerHTML = 
+                '<strong>' + roomName + '</strong> seçildi. Kapasite: ' + capacity + ' kişi';
+            document.getElementById('roomInfo').style.display = 'block';
+        } else {
+            document.getElementById('roomInfo').style.display = 'none';
+        }
+        
+        // Check availability when room changes
+        checkAvailability();
+    });
+    
+    // Date and time change events
+    ['reservation_date', 'start_time', 'end_time'].forEach(function(id) {
+        document.getElementById(id).addEventListener('change', checkAvailability);
+    });
+});
+
+function checkAvailability() {
+    const roomId = document.getElementById('room_id').value;
+    const date = document.getElementById('reservation_date').value;
+    const startTime = document.getElementById('start_time').value;
+    const endTime = document.getElementById('end_time').value;
+    
+    if (!roomId || !date) {
+        document.getElementById('conflictAlert').style.display = 'none';
+        return;
+    }
+    
+    fetch('/api/room-reservations/' + roomId + '/' + date)
+        .then(function(response) { return response.json(); })
+        .then(function(reservations) {
+            const conflicts = [];
+            
+            if (startTime && endTime) {
+                reservations.forEach(function(res) {
+                    if ((startTime <= res.start_time && endTime > res.start_time) ||
+                        (startTime < res.end_time && endTime >= res.end_time) ||
+                        (startTime >= res.start_time && endTime <= res.end_time)) {
+                        conflicts.push(res);
+                    }
+                });
+            }
+            
+            if (conflicts.length > 0) {
+                let conflictHtml = '<ul class="mb-0">';
+                conflicts.forEach(function(conflict) {
+                    conflictHtml += '<li>' + conflict.start_time + ' - ' + conflict.end_time + ': ' + conflict.user_name + '</li>';
+                });
+                conflictHtml += '</ul>';
+                
+                document.getElementById('conflictList').innerHTML = conflictHtml;
+                document.getElementById('conflictAlert').style.display = 'block';
+            } else {
+                document.getElementById('conflictAlert').style.display = 'none';
+            }
+        })
+        .catch(function(error) {
+            console.error('Error checking availability:', error);
+        });
+}
+
+function showRoomReservations(roomId, roomName) {
+    document.getElementById('roomModalTitle').innerHTML = 
+        '<i class="bi bi-calendar3 me-2"></i>' + roomName + ' Rezervasyonları';
+    
+    const modal = new bootstrap.Modal(document.getElementById('roomReservationsModal'));
+    modal.show();
+    
+    loadRoomReservations(roomId, document.getElementById('modalDate').value);
+    
+    // Date change event for modal
+    document.getElementById('modalDate').onchange = function() {
+        loadRoomReservations(roomId, this.value);
+    };
+}
+
+function loadRoomReservations(roomId, date) {
+    document.getElementById('modalReservations').innerHTML = 
+        '<div class="text-center py-4"><div class="spinner-border" role="status"></div></div>';
+    
+    fetch('/api/room-reservations/' + roomId + '/' + date)
+        .then(function(response) { return response.json(); })
+        .then(function(reservations) {
+            let html = '';
+            
+            if (reservations.length > 0) {
+                html = '<div class="list-group">';
+                reservations.forEach(function(res) {
+                    html += '<div class="list-group-item">' +
+                            '<div class="d-flex justify-content-between align-items-center">' +
+                            '<div>' +
+                            '<h6 class="mb-1">' + res.start_time + ' - ' + res.end_time + '</h6>' +
+                            '<p class="mb-1">' + (res.purpose || 'Amaç belirtilmemiş') + '</p>' +
+                            '<small class="text-muted">Rezerve eden: ' + res.user_name + '</small>' +
+                            '</div>' +
+                            '<span class="badge bg-primary">Rezerve</span>' +
+                            '</div>' +
+                            '</div>';
+                });
+                html += '</div>';
+            } else {
+                html = '<div class="text-center py-4 text-muted">' +
+                       '<i class="bi bi-calendar-x display-6 mb-2"></i>' +
+                       '<h6>Bu tarihte rezervasyon yok</h6>' +
+                       '<p class="mb-0">Oda bu tarihte tamamen müsait.</p>' +
+                       '</div>';
+            }
+            
+            document.getElementById('modalReservations').innerHTML = html;
+        })
+        .catch(function(error) {
+            console.error('Error loading reservations:', error);
+            document.getElementById('modalReservations').innerHTML = 
+                '<div class="alert alert-danger">Rezervasyonlar yüklenirken hata oluştu.</div>';
+        });
+}
+
+// Form validation
+document.getElementById('reservationForm').addEventListener('submit', function(e) {
+    const startTime = document.getElementById('start_time').value;
+    const endTime = document.getElementById('end_time').value;
+    
+    if (startTime >= endTime) {
+        e.preventDefault();
+        alert('Bitiş saati başlangıç saatinden sonra olmalıdır!');
+        return false;
+    }
+    
+    // Check for conflicts
+    const conflictAlert = document.getElementById('conflictAlert');
+    if (conflictAlert.style.display !== 'none') {
+        if (!confirm('Çakışan rezervasyonlar var. Yine de devam etmek istiyor musunuz?')) {
+            e.preventDefault();
+            return false;
+        }
+    }
+});
+</script>
+
+<style>
+.table th {
+    border-top: none;
+}
+.badge {
+    font-size: 0.75em;
+}
+</style>
+{% endblock %} 

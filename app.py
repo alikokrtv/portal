@@ -140,6 +140,7 @@ def login():
             
             # Admin veya İK yöneticisi kontrolü
             session['is_admin'] = user.get('role_name') in ['Admin', 'İK Yöneticisi', 'İçerik Yöneticisi']
+            session['can_reserve_rooms'] = user.get('can_reserve_rooms', False) or session['is_admin']
             
             flash('Başarıyla giriş yaptınız!', 'success')
             return redirect(url_for('dashboard'))
@@ -213,6 +214,17 @@ def dashboard():
         else:
             birthday['turkish_month'] = ''
     
+    # Get recent promotions (last 30 days)
+    cursor.execute('''
+        SELECT p.*, u.first_name, u.last_name
+        FROM promotions p
+        JOIN users u ON p.user_id = u.id
+        WHERE p.promotion_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+        ORDER BY p.promotion_date DESC
+        LIMIT 5
+    ''')
+    recent_promotions = cursor.fetchall()
+
     # Get work anniversaries (next 30 days) - bugün olanları farklı göster
     cursor.execute('''
         SELECT u.first_name, u.last_name, u.hire_date, d.name as department,
@@ -275,6 +287,7 @@ def dashboard():
                          announcements=announcements,
                          upcoming_birthdays=upcoming_birthdays,
                          upcoming_anniversaries=upcoming_anniversaries,
+                         recent_promotions=recent_promotions,
                          total_announcements=total_announcements,
                          total_personnel=total_personnel,
                          total_departments=total_departments)
@@ -829,6 +842,141 @@ def jobs():
     ]
     
     return render_template('jobs.html', jobs=jobs_list)
+
+# Meeting Room Routes
+@app.route('/meeting-rooms')
+@require_login
+def meeting_rooms():
+    """Toplantı odaları listesi ve rezervasyon sayfası"""
+    if not session.get('can_reserve_rooms'):
+        flash('Toplantı odası rezervasyonu için yetkiniz bulunmuyor!', 'error')
+        return redirect(url_for('dashboard'))
+    
+    conn = get_db_connection()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    
+    # Toplantı odalarını al
+    cursor.execute('SELECT * FROM meeting_rooms ORDER BY name')
+    rooms = cursor.fetchall()
+    
+    # Bugünden itibaren 30 günlük rezervasyonları al
+    cursor.execute('''
+        SELECT r.*, mr.name as room_name, u.first_name, u.last_name,
+               CONCAT(u.first_name, " ", u.last_name) as user_name
+        FROM room_reservations r
+        JOIN meeting_rooms mr ON r.room_id = mr.id
+        JOIN users u ON r.user_id = u.id
+        WHERE r.reservation_date >= CURDATE()
+        AND r.reservation_date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY)
+        AND r.status != 'cancelled'
+        ORDER BY r.reservation_date, r.start_time
+    ''')
+    reservations = cursor.fetchall()
+    
+    conn.close()
+    return render_template('meeting_rooms.html', rooms=rooms, reservations=reservations)
+
+@app.route('/meeting-rooms/reserve', methods=['POST'])
+@require_login
+def reserve_room():
+    """Toplantı odası rezervasyonu yap"""
+    if not session.get('can_reserve_rooms'):
+        flash('Toplantı odası rezervasyonu için yetkiniz bulunmuyor!', 'error')
+        return redirect(url_for('dashboard'))
+    
+    room_id = request.form['room_id']
+    reservation_date = request.form['reservation_date']
+    start_time = request.form['start_time']
+    end_time = request.form['end_time']
+    purpose = request.form.get('purpose', '')
+    
+    conn = get_db_connection()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    
+    # Çakışma kontrolü
+    cursor.execute('''
+        SELECT COUNT(*) as conflict_count
+        FROM room_reservations 
+        WHERE room_id = %s 
+        AND reservation_date = %s
+        AND status != 'cancelled'
+        AND (
+            (start_time <= %s AND end_time > %s) OR
+            (start_time < %s AND end_time >= %s) OR
+            (start_time >= %s AND end_time <= %s)
+        )
+    ''', (room_id, reservation_date, start_time, start_time, end_time, end_time, start_time, end_time))
+    
+    conflict = cursor.fetchone()['conflict_count']
+    
+    if conflict > 0:
+        flash('Seçtiğiniz saatte oda zaten rezerve edilmiş!', 'error')
+    else:
+        cursor.execute('''
+            INSERT INTO room_reservations (room_id, user_id, reservation_date, start_time, end_time, purpose)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        ''', (room_id, session['user_id'], reservation_date, start_time, end_time, purpose))
+        
+        conn.commit()
+        flash('Toplantı odası başarıyla rezerve edildi!', 'success')
+    
+    conn.close()
+    return redirect(url_for('meeting_rooms'))
+
+@app.route('/meeting-rooms/cancel/<int:id>')
+@require_login  
+def cancel_reservation(id):
+    """Rezervasyonu iptal et"""
+    conn = get_db_connection()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    
+    # Rezervasyonu kontrol et - sadece kendi rezervasyonunu veya admin iptal edebilir
+    cursor.execute('''
+        SELECT user_id FROM room_reservations WHERE id = %s
+    ''', (id,))
+    reservation = cursor.fetchone()
+    
+    if not reservation:
+        flash('Rezervasyon bulunamadı!', 'error')
+    elif reservation['user_id'] != session['user_id'] and not session.get('is_admin'):
+        flash('Bu rezervasyonu iptal etme yetkiniz yok!', 'error')
+    else:
+        cursor.execute('''
+            UPDATE room_reservations SET status = 'cancelled' WHERE id = %s
+        ''', (id,))
+        conn.commit()
+        flash('Rezervasyon başarıyla iptal edildi!', 'success')
+    
+    conn.close()
+    return redirect(url_for('meeting_rooms'))
+
+@app.route('/api/room-reservations/<int:room_id>/<date>')
+@require_login
+def get_room_reservations(room_id, date):
+    """Belirli bir oda ve tarih için rezervasyonları JSON olarak döndür"""
+    conn = get_db_connection()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    
+    cursor.execute('''
+        SELECT start_time, end_time, purpose,
+               CONCAT(u.first_name, " ", u.last_name) as user_name
+        FROM room_reservations r
+        JOIN users u ON r.user_id = u.id
+        WHERE r.room_id = %s 
+        AND r.reservation_date = %s
+        AND r.status != 'cancelled'
+        ORDER BY r.start_time
+    ''', (room_id, date))
+    
+    reservations = cursor.fetchall()
+    conn.close()
+    
+    # Time objelerini string'e çevir
+    for res in reservations:
+        res['start_time'] = res['start_time'].strftime('%H:%M')
+        res['end_time'] = res['end_time'].strftime('%H:%M')
+    
+    return jsonify(reservations)
 
 if __name__ == '__main__':
     app.run(

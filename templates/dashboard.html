@@ -30,14 +30,11 @@
                                 {{ announcement.content[:150] }}{% if announcement.content|length > 150 %}...{% endif %}
                             </p>
                             
-                            <div class="d-flex justify-content-between align-items-center">
-                                <small class="text-muted">
-                                    <i class="bi bi-person me-1"></i>
-                                    {{ announcement.first_name }} {{ announcement.last_name }}
-                                </small>
-                                {% if announcement.category %}
-                                    <span class="badge bg-primary">{{ announcement.category }}</span>
-                                {% endif %}
+                            <div class="d-flex justify-content-end align-items-center">
+                                <a href="{{ url_for('announcement_detail', id=announcement.id) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-arrow-right me-1"></i>
+                                    Devamını Oku
+                                </a>
                             </div>
                         </div>
                     {% endfor %}
@@ -93,6 +90,44 @@
                     <div class="text-center text-muted py-3">
                         <i class="bi bi-calendar-heart display-6 mb-2"></i>
                         <p class="mb-0">Yaklaşan doğum günü yok.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Terfi Duyuları -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-trophy me-2"></i>
+                    Son Terfi Duyuları
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if recent_promotions %}
+                    {% for promotion in recent_promotions %}
+                        <div class="d-flex justify-content-between align-items-center {% if not loop.last %}border-bottom{% endif %} pb-2 {% if not loop.last %}mb-2{% endif %}">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle bg-success d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                    <span class="text-white fw-bold">{{ promotion.first_name[0] }}{{ promotion.last_name[0] }}</span>
+                                </div>
+                                <div>
+                                    <div class="fw-semibold">{{ promotion.first_name }} {{ promotion.last_name }}</div>
+                                    <small class="text-muted">
+                                        {{ promotion.old_position or 'Önceki Pozisyon' }} → {{ promotion.new_position }}
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-success">🎉 Terfi!</span>
+                                <div><small class="text-muted">{{ promotion.promotion_date.strftime('%d/%m/%Y') if promotion.promotion_date else 'Yeni' }}</small></div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center text-muted py-3">
+                        <i class="bi bi-trophy display-6 mb-2"></i>
+                        <p class="mb-0">Yakın zamanda terfi duyurusu yok.</p>
                     </div>
                 {% endif %}
             </div>
