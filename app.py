@@ -114,10 +114,43 @@ MYSQL_CONFIG = {
     'port': int(os.environ.get('DB_PORT', 3306))
 }
 
+# Database debugging function
+def check_database_structure():
+    """Veritabanı yapısını kontrol et ve hataları logla"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
+        
+        # Tablo listesini al
+        cursor.execute("SHOW TABLES")
+        tables = cursor.fetchall()
+        print("📋 Available tables:")
+        for table in tables:
+            print(f"  - {list(table.values())[0]}")
+        
+        # Kritik tabloların yapısını kontrol et
+        critical_tables = ['users', 'promotions', 'departments']
+        for table_name in critical_tables:
+            try:
+                cursor.execute(f"DESCRIBE {table_name}")
+                columns = cursor.fetchall()
+                print(f"\n🔍 {table_name} table structure:")
+                for col in columns:
+                    print(f"  - {col['Field']} ({col['Type']})")
+            except Exception as e:
+                print(f"❌ Error checking {table_name}: {e}")
+        
+        conn.close()
+        return True
+        
+    except Exception as e:
+        print(f"❌ Database structure check failed: {e}")
+        return False
+
 # Database connection with fallback passwords
 def get_db_connection():
-    # Önce 255223, sonra 255223Rtv denesin
-    passwords_to_try = ['255223', '255223Rtv', '', 'root', 'admin', '123456', '2552232']
+    # Önce 255223Rtv (uzak sunucu), sonra 255223 (yerel) denesin
+    passwords_to_try = ['255223Rtv', '255223', '', 'root', 'admin', '123456', '2552232']
     
     for password in passwords_to_try:
         try:
@@ -236,6 +269,10 @@ def logout():
 @app.route('/dashboard')
 @require_login
 def dashboard():
+    # Debug: Veritabanı yapısını kontrol et
+    print("🔍 Checking database structure...")
+    check_database_structure()
+    
     conn = get_db_connection()
     cursor = conn.cursor(pymysql.cursors.DictCursor)
     
@@ -294,14 +331,38 @@ def dashboard():
             birthday['turkish_month'] = ''
     
     # Get recent promotions (last 365 days) - carousel için daha fazla veri
-    cursor.execute('''
-        SELECT p.*
-        FROM promotions p
-        WHERE p.promotion_date >= DATE_SUB(CURDATE(), INTERVAL 365 DAY)
-        ORDER BY p.promotion_date DESC
-        LIMIT 10
-    ''')
-    recent_promotions = cursor.fetchall()
+    try:
+        # Önce promotions tablosunun yapısını kontrol et
+        cursor.execute("DESCRIBE promotions")
+        promo_columns = [col['Field'] for col in cursor.fetchall()]
+        print(f"📊 Promotions table columns: {promo_columns}")
+        
+        # Güvenli kolon seçimi
+        safe_columns = []
+        expected_columns = ['id', 'employee_name', 'old_position', 'new_position', 'promotion_date', 'department']
+        
+        for col in expected_columns:
+            if col in promo_columns:
+                safe_columns.append(f"p.{col}")
+        
+        if not safe_columns:
+            safe_columns = ['p.id']  # En azından id olmalı
+        
+        query = f'''
+            SELECT {', '.join(safe_columns)}
+            FROM promotions p
+            WHERE p.promotion_date >= DATE_SUB(CURDATE(), INTERVAL 365 DAY)
+            ORDER BY p.promotion_date DESC
+            LIMIT 10
+        '''
+        
+        print(f"🔍 Executing promotions query: {query}")
+        cursor.execute(query)
+        recent_promotions = cursor.fetchall()
+        
+    except Exception as e:
+        print(f"❌ Promotions query error: {e}")
+        recent_promotions = []
 
     # Get work anniversaries (next 30 days) - basitleştirilmiş hesaplama
     cursor.execute('''
