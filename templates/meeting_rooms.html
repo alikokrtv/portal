@@ -1,384 +1,1506 @@
 {% extends "base.html" %}
 
-{% block title %}Toplantı Odaları{% endblock %}
-{% block page_title %}Toplantı Odası Rezervasyonu{% endblock %}
+{% block title %}Toplantı Rezervasyon{% endblock %}
+{% block page_title %}Toplantı Odası Rezervasyon{% endblock %}
 
-{% block content %}
-<div class="row">
-    <!-- Sol Taraf - Rezervasyon Formu -->
-    <div class="col-lg-8 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="bi bi-calendar-plus me-2"></i>
-                    Yeni Rezervasyon
-                </h5>
-            </div>
-            <div class="card-body">
-                <form action="{{ url_for('reserve_room') }}" method="POST" id="reservationForm">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="room_id" class="form-label">Toplantı Odası</label>
-                            <select class="form-control" id="room_id" name="room_id" required>
-                                <option value="">Oda seçin...</option>
-                                {% for room in rooms %}
-                                <option value="{{ room.id }}" data-capacity="{{ room.capacity }}">
-                                    {{ room.name }} ({{ room.capacity }} kişi)
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="reservation_date" class="form-label">Tarih</label>
-                            <input type="date" class="form-control" id="reservation_date" name="reservation_date" required>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="start_time" class="form-label">Başlangıç Saati</label>
-                            <input type="time" class="form-control" id="start_time" name="start_time" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="end_time" class="form-label">Bitiş Saati</label>
-                            <input type="time" class="form-control" id="end_time" name="end_time" required>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="purpose" class="form-label">Toplantı Amacı</label>
-                        <textarea class="form-control" id="purpose" name="purpose" rows="3" 
-                                  placeholder="Toplantının amacını kısaca açıklayın..."></textarea>
-                    </div>
-                    
-                    <!-- Seçilen Oda Bilgileri -->
-                    <div id="roomInfo" class="alert alert-info" style="display: none;">
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-info-circle me-2"></i>
-                            <div id="roomDetails"></div>
-                        </div>
-                    </div>
-                    
-                    <!-- Çakışan Rezervasyonlar -->
-                    <div id="conflictAlert" class="alert alert-warning" style="display: none;">
-                        <i class="bi bi-exclamation-triangle me-2"></i>
-                        <strong>Dikkat:</strong> Bu saatlerde başka rezervasyonlar var!
-                        <div id="conflictList" class="mt-2"></div>
-                    </div>
-                    
-                    <div class="d-flex justify-content-between">
-                        <button type="button" class="btn btn-outline-secondary" onclick="checkAvailability()">
-                            <i class="bi bi-search me-2"></i>
-                            Müsaitlik Kontrol Et
-                        </button>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-check-circle me-2"></i>
-                            Rezervasyon Yap
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Sağ Taraf - Oda Bilgileri -->
-    <div class="col-lg-4 mb-4">
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="bi bi-building me-2"></i>
-                    Mevcut Odalar
-                </h5>
-            </div>
-            <div class="card-body">
-                {% for room in rooms %}
-                <div class="mb-3 p-3 border rounded">
-                    <h6 class="mb-2">{{ room.name }}</h6>
-                    <p class="text-muted mb-2 small">{{ room.description }}</p>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="badge bg-primary">{{ room.capacity }} kişi</span>
-                        <button class="btn btn-sm btn-outline-info" onclick="showRoomReservations({{ room.id }}, '{{ room.name }}')">
-                            <i class="bi bi-calendar3"></i> Rezervasyonlar
-                        </button>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-        
-        <!-- Bugünkü Rezervasyonlar -->
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="bi bi-calendar-check me-2"></i>
-                    Bugünkü Rezervasyonlar
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="text-center text-muted py-3">
-                    <i class="bi bi-calendar-x display-6 mb-2"></i>
-                    <p class="mb-0">Bugün rezervasyon yok</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Yaklaşan Rezervasyonlar -->
-<div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">
-                    <i class="bi bi-calendar2-week me-2"></i>
-                    Yaklaşan Rezervasyonlar (30 Gün)
-                </h5>
-                <span class="badge bg-secondary">{{ reservations|length }} rezervasyon</span>
-            </div>
-            <div class="card-body">
-                {% if reservations %}
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Tarih</th>
-                                <th>Saat</th>
-                                <th>Oda</th>
-                                <th>Rezerve Eden</th>
-                                <th>Amaç</th>
-                                <th>İşlemler</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for reservation in reservations %}
-                            <tr>
-                                <td>{{ reservation.reservation_date.strftime('%d/%m/%Y') }}</td>
-                                <td>{{ reservation.start_time.strftime('%H:%M') }} - {{ reservation.end_time.strftime('%H:%M') }}</td>
-                                <td>
-                                    <span class="badge bg-primary">{{ reservation.room_name }}</span>
-                                </td>
-                                <td>{{ reservation.user_name }}</td>
-                                <td>{{ reservation.purpose[:50] }}{% if reservation.purpose|length > 50 %}...{% endif %}</td>
-                                <td>
-                                    {% if reservation.user_id == session.user_id or session.is_admin %}
-                                    <a href="{{ url_for('cancel_reservation', id=reservation.id) }}" 
-                                       class="btn btn-sm btn-outline-danger"
-                                       onclick="return confirm('Rezervasyonu iptal etmek istediğinizden emin misiniz?')">
-                                        <i class="bi bi-trash"></i> İptal
-                                    </a>
-                                    {% else %}
-                                    <span class="text-muted">-</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <div class="text-center text-muted py-5">
-                    <i class="bi bi-calendar2-week display-4 mb-3"></i>
-                    <h5>Yaklaşan rezervasyon bulunmuyor</h5>
-                    <p>Yukarıdaki formu kullanarak yeni bir rezervasyon oluşturabilirsiniz.</p>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Room Reservations Modal -->
-<div class="modal fade" id="roomReservationsModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="roomModalTitle">
-                    <i class="bi bi-calendar3 me-2"></i>
-                    Oda Rezervasyonları
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <label for="modalDate" class="form-label">Tarih Seçin:</label>
-                    <input type="date" class="form-control" id="modalDate">
-                </div>
-                <div id="modalReservations">
-                    <div class="text-center py-4">
-                        <div class="spinner-border" role="status">
-                            <span class="visually-hidden">Yükleniyor...</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-// Global variables
-let selectedRoomId = null;
-
-// Set minimum date to today
-document.addEventListener('DOMContentLoaded', function() {
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('reservation_date').value = today;
-    document.getElementById('modalDate').value = today;
-    
-    // Room selection change
-    document.getElementById('room_id').addEventListener('change', function() {
-        selectedRoomId = this.value;
-        const selectedOption = this.options[this.selectedIndex];
-        
-        if (selectedRoomId) {
-            const capacity = selectedOption.dataset.capacity;
-            const roomName = selectedOption.text;
-            
-            document.getElementById('roomDetails').innerHTML = 
-                '<strong>' + roomName + '</strong> seçildi. Kapasite: ' + capacity + ' kişi';
-            document.getElementById('roomInfo').style.display = 'block';
-        } else {
-            document.getElementById('roomInfo').style.display = 'none';
-        }
-        
-        // Check availability when room changes
-        checkAvailability();
-    });
-    
-    // Date and time change events
-    ['reservation_date', 'start_time', 'end_time'].forEach(function(id) {
-        document.getElementById(id).addEventListener('change', checkAvailability);
-    });
-});
-
-function checkAvailability() {
-    const roomId = document.getElementById('room_id').value;
-    const date = document.getElementById('reservation_date').value;
-    const startTime = document.getElementById('start_time').value;
-    const endTime = document.getElementById('end_time').value;
-    
-    if (!roomId || !date) {
-        document.getElementById('conflictAlert').style.display = 'none';
-        return;
+{% block extra_css %}
+<style>
+    .meeting-container {
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
     }
     
-    fetch('/api/room-reservations/' + roomId + '/' + date)
-        .then(function(response) { return response.json(); })
-        .then(function(reservations) {
-            const conflicts = [];
+    /* Sol Panel - Room Selection */
+    .room-selection-panel {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        border: 1px solid var(--gray-200);
+        margin-bottom: 20px;
+    }
+    
+    .room-tabs {
+        display: flex;
+        background: var(--gray-50);
+        border-radius: 12px 12px 0 0;
+        border-bottom: 1px solid var(--gray-200);
+    }
+    
+    .room-tab {
+        flex: 1;
+        padding: 15px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        border: none;
+        background: none;
+        font-weight: 500;
+        color: var(--gray-600);
+        font-size: 14px;
+    }
+    
+    .room-tab.active {
+        background: white;
+        color: var(--blue-600);
+        font-weight: 600;
+        border-bottom: 2px solid var(--blue-600);
+    }
+    
+    .room-content {
+        padding: 20px;
+    }
+    
+    .room-details {
+        display: none;
+    }
+    
+    .room-details.active {
+        display: block;
+    }
+    
+    .room-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--gray-800);
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .room-features {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        gap: 8px;
+    }
+    
+    .room-features li {
+        color: var(--gray-600);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+    }
+    
+    .room-features li::before {
+        content: '✓';
+        color: var(--green-600);
+        font-weight: bold;
+        width: 18px;
+        height: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--green-100);
+        border-radius: 50%;
+        font-size: 12px;
+    }
+    
+    /* Time Slots */
+    .time-slots-panel {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        border: 1px solid var(--gray-200);
+    }
+    
+    .time-grid {
+        padding: 20px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
+    
+    .time-slot {
+        padding: 12px 8px;
+        border: 2px solid var(--gray-200);
+        border-radius: 8px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-weight: 500;
+        background: white;
+        color: var(--gray-700);
+        font-size: 13px;
+    }
+    
+    .time-slot:hover {
+        border-color: var(--blue-500);
+        background: var(--blue-50);
+        transform: translateY(-1px);
+    }
+    
+    .time-slot.selected {
+        background: var(--blue-600);
+        color: white;
+        border-color: var(--blue-600);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+    
+    .time-slot.unavailable {
+        background: var(--red-50);
+        color: var(--red-600);
+        border-color: var(--red-200);
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+    
+    /* Calendar */
+    .calendar-panel {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        border: 1px solid var(--gray-200);
+        margin-bottom: 20px;
+    }
+    
+    .calendar-header {
+        background: linear-gradient(135deg, var(--blue-600), var(--blue-700));
+        color: white;
+        padding: 20px;
+        border-radius: 12px 12px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .calendar-nav {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+    
+    .calendar-nav button {
+        background: rgba(255,255,255,0.2);
+        border: none;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 18px;
+        transition: background 0.3s;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .calendar-nav button:hover {
+        background: rgba(255,255,255,0.3);
+    }
+    
+    .calendar-title {
+        font-size: 18px;
+        font-weight: 600;
+    }
+    
+    .calendar-body {
+        padding: 20px;
+    }
+    
+    .calendar-weekdays {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 2px;
+        margin-bottom: 8px;
+    }
+    
+    .calendar-weekday {
+        text-align: center;
+        font-weight: 600;
+        padding: 8px 4px;
+        background: var(--gray-100);
+        border-radius: 6px;
+        font-size: 12px;
+        color: var(--gray-600);
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .calendar-days {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 2px;
+    }
+    
+    .calendar-day {
+        height: 42px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-weight: 500;
+        position: relative;
+        font-size: 14px;
+        border: 1px solid transparent;
+    }
+    
+    .calendar-day:hover {
+        background: var(--blue-50);
+        transform: scale(1.05);
+    }
+    
+    .calendar-day.other-month {
+        color: var(--gray-300);
+        pointer-events: none;
+    }
+    
+    .calendar-day.today {
+        background: var(--blue-600);
+        color: white;
+        font-weight: 700;
+    }
+    
+    .calendar-day.selected {
+        background: var(--green-500);
+        color: white;
+        font-weight: 700;
+        transform: scale(1.08);
+        box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+    }
+    
+    .calendar-day.has-reservation {
+        background: var(--yellow-100);
+        color: var(--gray-800);
+    }
+    
+    .calendar-day.has-reservation::after {
+        content: '';
+        position: absolute;
+        bottom: 3px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 4px;
+        height: 4px;
+        background: var(--red-500);
+        border-radius: 50%;
+    }
+    
+    .calendar-day.has-reservation:hover {
+        cursor: help;
+        background: var(--yellow-100);
+    }
+    
+    /* 🚫 Past dates styling */
+    .calendar-day.past-date {
+        background-color: #f8f9fa;
+        color: #adb5bd;
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+    
+    .calendar-day.past-date:hover {
+        background-color: #f8f9fa;
+        color: #adb5bd;
+        transform: none;
+        box-shadow: none;
+    }
+    
+    .unselectable {
+        opacity: 0.6;
+        pointer-events: none; /* Makes it completely unclickable */
+        text-decoration: line-through;
+    }
+    
+    /* Rezervasyon Tooltip */
+    .reservation-tooltip {
+        position: absolute;
+        background: rgba(0, 0, 0, 0.9);
+        color: white;
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        max-width: 250px;
+        z-index: 1000;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    
+    .reservation-tooltip.show {
+        opacity: 1;
+    }
+    
+    .tooltip-title {
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #fff;
+        border-bottom: 1px solid rgba(255,255,255,0.3);
+        padding-bottom: 4px;
+    }
+    
+    .tooltip-reservation {
+        margin-bottom: 6px;
+        padding: 4px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .tooltip-reservation:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+    
+    .tooltip-time {
+        font-weight: 500;
+        color: #90CAF9;
+    }
+    
+    .tooltip-room {
+        color: #A5D6A7;
+        font-size: 11px;
+    }
+    
+    .tooltip-person {
+        color: #FFCC80;
+        font-size: 11px;
+    }
+    
+    /* Form Panel */
+    .form-panel {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        border: 1px solid var(--gray-200);
+    }
+    
+    .booking-summary {
+        background: var(--green-50);
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 20px;
+        border-left: 4px solid var(--green-500);
+    }
+    
+    .summary-title {
+        font-weight: 600;
+        color: var(--gray-800);
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+    
+    .summary-details {
+        color: var(--gray-600);
+        font-size: 13px;
+        line-height: 1.4;
+    }
+    
+    .legend {
+        background: var(--gray-50);
+        border-radius: 8px;
+        padding: 16px;
+        margin-top: 16px;
+    }
+    
+    .legend-title {
+        font-weight: 600;
+        margin-bottom: 12px;
+        color: var(--gray-800);
+        font-size: 14px;
+    }
+    
+    .legend-items {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+    
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+    }
+    
+    .legend-color {
+        width: 12px;
+        height: 12px;
+        border-radius: 3px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid meeting-container">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-calendar-event me-2"></i>
+                        Toplantı Odası Rezervasyon Sistemi
+                    </h5>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-3">
+        <!-- Sol Panel - Room Selection & Time Slots -->
+        <div class="col-lg-3 col-md-4">
+            <!-- Room Selection -->
+            <div class="room-selection-panel">
+                <div class="room-tabs">
+                    <button class="room-tab active" onclick="selectRoom(1)">Büyük Toplantı</button>
+                    <button class="room-tab" onclick="selectRoom(2)">Think Tank</button>
+                </div>
+                <div class="room-content">
+                    <div class="room-details active" id="room-1">
+                        <div class="room-title">
+                            <i class="bi bi-building"></i>
+                            Büyük Toplantı Odası
+                        </div>
+                        <ul class="room-features">
+                            <li>15 kişi kapasiteli</li>
+                            <li>Projektör ve ses sistemi</li>
+                            <li>Video konferans imkanı</li>
+                            <li>Beyaz tahta</li>
+                            <li>Klima sistemi</li>
+                        </ul>
+                    </div>
+                    <div class="room-details" id="room-2">
+                        <div class="room-title">
+                            <i class="bi bi-lightbulb"></i>
+                            Think Tank
+                        </div>
+                        <ul class="room-features">
+                            <li>8 kişi kapasiteli</li>
+                            <li>LED TV</li>
+                            <li>Kablosuz sunum</li>
+                            <li>Beyaz tahta</li>
+                            <li>Rahat koltuklar</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
             
-            if (startTime && endTime) {
-                reservations.forEach(function(res) {
-                    if ((startTime <= res.start_time && endTime > res.start_time) ||
-                        (startTime < res.end_time && endTime >= res.end_time) ||
-                        (startTime >= res.start_time && endTime <= res.end_time)) {
-                        conflicts.push(res);
+            <!-- Time Slots -->
+            <div class="time-slots-panel">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-clock me-2"></i>
+                        Zaman Seçimi
+                    </h6>
+                </div>
+                <div class="time-grid" id="timeSlots">
+                    <!-- Time slots buraya JavaScript ile yüklenecek -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Orta Panel - Calendar -->
+        <div class="col-lg-6 col-md-8">
+            <div class="calendar-panel">
+                <div class="calendar-header">
+                    <div class="calendar-nav">
+                        <button onclick="previousMonth()">‹</button>
+                        <div class="calendar-title" id="calendarTitle">Temmuz 2025</div>
+                        <button onclick="nextMonth()">›</button>
+                    </div>
+                </div>
+                <div class="calendar-body">
+                    <div class="calendar-weekdays">
+                        <div class="calendar-weekday">Pt</div>
+                        <div class="calendar-weekday">Sa</div>
+                        <div class="calendar-weekday">Ça</div>
+                        <div class="calendar-weekday">Pe</div>
+                        <div class="calendar-weekday">Cu</div>
+                        <div class="calendar-weekday">Ct</div>
+                        <div class="calendar-weekday">Pz</div>
+                    </div>
+                    <div class="calendar-days" id="calendarDays">
+                        <!-- Calendar days buraya JavaScript ile yüklenecek -->
+                    </div>
+                    
+                    <!-- Rezervasyon Tooltip -->
+                    <div class="reservation-tooltip" id="reservationTooltip">
+                        <div class="tooltip-title" id="tooltipTitle"></div>
+                        <div id="tooltipContent"></div>
+                    </div>
+                </div>
+                
+                <div class="legend">
+                    <div class="legend-title">Açıklama:</div>
+                    <div class="legend-items">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: var(--blue-600);"></div>
+                            <span>Bugün</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: var(--green-500);"></div>
+                            <span>Seçili</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: var(--yellow-100);"></div>
+                            <span>Rezerve</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: var(--gray-100);"></div>
+                            <span>Müsait</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sağ Panel - Form -->
+        <div class="col-lg-3">
+            <div class="form-panel">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-journal-text me-2"></i>
+                        Rezervasyon Formu
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div id="bookingAlert"></div>
+                    
+                    <div class="booking-summary" id="bookingSummary" style="display: none;">
+                        <div class="summary-title">📋 Rezervasyon Özeti</div>
+                        <div class="summary-details" id="summaryDetails">
+                            <!-- Summary details buraya JavaScript ile yüklenecek -->
+                        </div>
+                    </div>
+                    
+                    <form id="reservationForm" action="/meeting-rooms/reserve" method="POST">
+                        <input type="hidden" id="roomId" name="room_id" value="1">
+                        <input type="hidden" id="reservationDate" name="reservation_date">
+                        <input type="hidden" id="startTime" name="start_time">
+                        <input type="hidden" id="endTime" name="end_time">
+                        
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="bi bi-person me-1"></i>
+                                İsim *
+                            </label>
+                            <input type="text" class="form-control form-control-sm" name="requester_name" required 
+                                   placeholder="Adınızı giriniz">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="bi bi-person me-1"></i>
+                                Soyisim *
+                            </label>
+                            <input type="text" class="form-control form-control-sm" name="requester_surname" required 
+                                   placeholder="Soyadınızı giriniz">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="bi bi-envelope me-1"></i>
+                                E-mail *
+                            </label>
+                            <input type="email" class="form-control form-control-sm" name="requester_email" required 
+                                   placeholder="email@pluskitchen.com.tr">
+                        </div>
+                        
+                        
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="bi bi-people me-1"></i>
+                                Katılımcılar
+                            </label>
+                            <select class="form-select form-select-sm" name="participants" id="participantSelect" multiple>
+                                <!-- Participant options will be loaded dynamically -->
+                                <option value="" disabled>Yükleniyor...</option>
+                            </select>
+                            <div class="form-text">
+                                <small>Birden fazla kişi seçmek için Ctrl tuşunu basılı tutun</small>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="bi bi-chat-text me-1"></i>
+                                Toplantı Amacı
+                            </label>
+                            <textarea class="form-control form-control-sm" name="purpose" rows="2" 
+                                      placeholder="Toplantının amacını kısaca açıklayın..."></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="bi bi-sticky me-1"></i>
+                                Ek Notlar
+                            </label>
+                            <textarea class="form-control form-control-sm" name="notes" rows="2" 
+                                      placeholder="Varsa ek taleplerinizi belirtin..."></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100" id="submitBtn" disabled>
+                            <i class="bi bi-calendar-plus me-2"></i>
+                            Rezervasyon Oluştur
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Reservation List Section -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-list-ul me-2"></i>
+                            Rezervasyon Listesi
+                        </h5>
+                        <button class="btn btn-sm btn-outline-primary" id="refreshReservationList">
+                            <i class="bi bi-arrow-clockwise me-1"></i>
+                            Yenile
+                        </button>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Tarih</th>
+                                        <th>Saat</th>
+                                        <th>Oda</th>
+                                        <th>İsim</th>
+                                        <th>E-mail</th>
+                                        <th>Katılımcı Sayısı</th>
+                                        <th>Amaç</th>
+                                        <th>Durum</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reservationListBody">
+                                    <!-- Reservations will be loaded here via JavaScript -->
+                                    <tr id="reservationListLoader">
+                                        <td colspan="8" class="text-center py-4">
+                                            <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
+                                                <span class="visually-hidden">Yükleniyor...</span>
+                                            </div>
+                                            Rezervasyonlar yükleniyor...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Global variables
+let currentDate = new Date();
+let selectedDate = null;
+let selectedRoom = 1;
+let selectedTimeSlot = null;
+let monthReservations = {}; // Store reservations for current month
+
+// Turkish months
+const months = [
+    'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
+    'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'
+];
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Calendar initializing...');
+    console.log('Current date:', currentDate);
+    
+    loadTimeSlots();
+    loadMonthReservations();
+    renderCalendar();
+    updateFormState();
+    loadAllReservations(); // Load reservation list
+    
+    // Auto-fill user information if available
+    autoFillUserInfo();
+    
+    // Setup reservation list refresh button
+    document.getElementById('refreshReservationList').addEventListener('click', loadAllReservations);
+    
+    console.log('Calendar initialized successfully');
+});
+
+// Load reservations for current month
+function loadMonthReservations() {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth() + 1; // JavaScript months are 0-based, API expects 1-based
+    
+    console.log(`📅 Loading monthly reservations for ${year}-${month}`);
+    
+    // Load reservations for both rooms for the whole month using new monthly API
+    Promise.all([
+        fetch(`/api/room-reservations/month/1/${year}/${month}`).then(r => r.json()),
+        fetch(`/api/room-reservations/month/2/${year}/${month}`).then(r => r.json())
+    ]).then(([room1Reservations, room2Reservations]) => {
+        console.log(`📊 Room 1 monthly reservations:`, room1Reservations);
+        console.log(`📊 Room 2 monthly reservations:`, room2Reservations);
+        
+        monthReservations = {};
+        
+        // Process room 1 reservations
+        room1Reservations.forEach(res => {
+            const dateKey = res.reservation_date;
+            if (!monthReservations[dateKey]) {
+                monthReservations[dateKey] = [];
+            }
+            monthReservations[dateKey].push({
+                ...res,
+                room_name: 'Büyük Toplantı Odası'
+            });
+        });
+        
+        // Process room 2 reservations
+        room2Reservations.forEach(res => {
+            const dateKey = res.reservation_date;
+            if (!monthReservations[dateKey]) {
+                monthReservations[dateKey] = [];
+            }
+            monthReservations[dateKey].push({
+                ...res,
+                room_name: 'Think Tank'
+            });
+        });
+        
+        console.log('📋 Monthly reservations processed:', monthReservations);
+        renderCalendar(); // Re-render calendar with reservation data
+    }).catch(error => {
+        console.error('❌ Error loading month reservations:', error);
+        monthReservations = {};
+        renderCalendar();
+    });
+}
+
+// Load time slots
+function loadTimeSlots() {
+    const timeSlots = [
+        { start: '09:00', end: '10:00', label: '09:00-10:00' },
+        { start: '10:00', end: '11:00', label: '10:00-11:00' },
+        { start: '11:00', end: '12:00', label: '11:00-12:00' },
+        { start: '12:00', end: '13:00', label: '12:00-13:00' },
+        { start: '13:00', end: '14:00', label: '13:00-14:00' },
+        { start: '14:00', end: '15:00', label: '14:00-15:00' },
+        { start: '15:00', end: '16:00', label: '15:00-16:00' },
+        { start: '16:00', end: '17:00', label: '16:00-17:00' },
+        { start: '17:00', end: '18:00', label: '17:00-18:00' }
+    ];
+    
+    const container = document.getElementById('timeSlots');
+    container.innerHTML = '';
+    
+    timeSlots.forEach((slot, index) => {
+        const button = document.createElement('button');
+        button.className = 'time-slot';
+        button.textContent = slot.label;
+        button.onclick = () => selectTimeSlot(slot.start, slot.end, slot.label, button);
+        container.appendChild(button);
+    });
+}
+
+// Select room
+function selectRoom(roomId) {
+    selectedRoom = roomId;
+    
+    // Update UI
+    document.querySelectorAll('.room-tab').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.room-details').forEach(detail => detail.classList.remove('active'));
+    
+    event.target.classList.add('active');
+    document.getElementById(`room-${roomId}`).classList.add('active');
+    
+    // Update hidden input
+    document.getElementById('roomId').value = roomId;
+    
+    // Refresh availability
+    if (selectedDate) {
+        checkAvailability();
+    }
+    
+    updateFormState();
+}
+
+// Select time slot
+function selectTimeSlot(startTime, endTime, label, button) {
+    // Remove previous selection
+    document.querySelectorAll('.time-slot').forEach(slot => slot.classList.remove('selected'));
+    
+    // Add selection to clicked button
+    button.classList.add('selected');
+    
+    selectedTimeSlot = { start: startTime, end: endTime, label: label };
+    
+    // Update hidden inputs
+    document.getElementById('startTime').value = startTime;
+    document.getElementById('endTime').value = endTime;
+    
+    updateFormState();
+}
+
+// Calendar navigation
+function previousMonth() {
+    currentDate.setMonth(currentDate.getMonth() - 1);
+    clearDateSelection();
+    loadMonthReservations();
+}
+
+function nextMonth() {
+    currentDate.setMonth(currentDate.getMonth() + 1);
+    clearDateSelection();
+    loadMonthReservations();
+}
+
+// Clear date selection when navigating months
+function clearDateSelection() {
+    selectedDate = null;
+    selectedTimeSlot = null;
+    document.getElementById('reservationDate').value = '';
+    document.getElementById('startTime').value = '';
+    document.getElementById('endTime').value = '';
+    document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('selected'));
+    document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+    updateFormState();
+}
+
+// Render calendar
+function renderCalendar() {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    
+    // Update title
+    document.getElementById('calendarTitle').textContent = `${months[month]} ${year}`;
+    
+    // Get first day of month and total days
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = (firstDay.getDay() + 6) % 7; // Convert to Monday start (0=Monday, 6=Sunday)
+    
+    const container = document.getElementById('calendarDays');
+    container.innerHTML = '';
+    
+    // Previous month days to fill the first week
+    const prevMonth = new Date(year, month - 1, 1);
+    const prevYear = prevMonth.getFullYear();
+    const prevMonthIndex = prevMonth.getMonth();
+    const daysInPrevMonth = new Date(prevYear, prevMonthIndex + 1, 0).getDate();
+    
+    for (let i = startingDayOfWeek - 1; i >= 0; i--) {
+        const day = daysInPrevMonth - i;
+        const dayElement = createDayElement(day, true, prevYear, prevMonthIndex);
+        container.appendChild(dayElement);
+    }
+    
+    // Current month days
+    const today = new Date();
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dayElement = createDayElement(day, false, year, month);
+        
+        // Check if today
+        if (year === today.getFullYear() && 
+            month === today.getMonth() && 
+            day === today.getDate()) {
+            dayElement.classList.add('today');
+        }
+        
+        container.appendChild(dayElement);
+    }
+    
+    // Next month days to fill remaining cells (ensure we have 6 rows total = 42 cells)
+    const totalCells = container.children.length;
+    const remainingCells = 42 - totalCells;
+    const nextMonth = new Date(year, month + 1, 1);
+    const nextYear = nextMonth.getFullYear();
+    const nextMonthIndex = nextMonth.getMonth();
+    
+    for (let day = 1; day <= remainingCells; day++) {
+        const dayElement = createDayElement(day, true, nextYear, nextMonthIndex);
+        container.appendChild(dayElement);
+    }
+}
+
+// Create day element
+function createDayElement(day, isOtherMonth, year, month) {
+    const dayElement = document.createElement('div');
+    dayElement.className = 'calendar-day';
+    dayElement.textContent = day;
+    
+    if (isOtherMonth) {
+        dayElement.classList.add('other-month');
+    } else {
+        // Store the date information for selection
+        dayElement.dataset.day = day;
+        dayElement.dataset.month = month;
+        dayElement.dataset.year = year;
+        
+        // ✅ Check if this date is in the past
+        const now = new Date();
+        const today = now.setHours(0, 0, 0, 0);
+        const dayDate = new Date(year, month, day); // month is already 0-based in this context
+        const isPast = dayDate < today;
+        
+        if (isPast) {
+            dayElement.classList.add('past-date', 'unselectable');
+            dayElement.title = 'Geçmiş tarihlere rezervasyon yapılamaz';
+            // No onclick handler for past dates - completely unselectable
+        } else {
+            // Only allow clicking on future dates
+            dayElement.onclick = () => selectDate(day);
+            
+            // Check if this date has reservations (real data)
+            const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            if (monthReservations[dateKey] && monthReservations[dateKey].length > 0) {
+                dayElement.classList.add('has-reservation');
+                dayElement.dataset.dateKey = dateKey;
+                
+                // Add tooltip events
+                dayElement.addEventListener('mouseenter', showReservationTooltip);
+                dayElement.addEventListener('mouseleave', hideReservationTooltip);
+            }
+        }
+    }
+    
+    return dayElement;
+}
+
+// Select date
+function selectDate(day) {
+    // Remove previous selection
+    document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('selected'));
+    
+    // Add selection
+    event.target.classList.add('selected');
+    
+    // Set selected date
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    selectedDate = new Date(year, month, day);
+    
+    // Update hidden input
+    const dateStr = selectedDate.toISOString().split('T')[0];
+    document.getElementById('reservationDate').value = dateStr;
+    
+    // Check availability
+    checkAvailability();
+    
+    updateFormState();
+}
+
+// Check availability for selected date and room
+function checkAvailability() {
+    if (!selectedDate) return;
+    
+    const reservationDateStr = selectedDate.toISOString().split('T')[0];
+    const roomId = selectedRoom;
+    
+    fetch(`/api/room-reservations/${roomId}/${reservationDateStr}`)
+        .then(response => response.json())
+        .then(reservations => {
+            console.log(`🔍 Checking availability for ${reservationDate} in room ${roomId}:`, reservations);
+            
+            // Get all time slots
+            const timeSlots = document.querySelectorAll('.time-slot');
+            
+            // Reset all slots to available
+            timeSlots.forEach(slot => {
+                slot.classList.remove('unavailable', 'unselectable');
+                slot.disabled = false;
+                slot.style.pointerEvents = 'auto';
+                slot.style.textDecoration = 'none';
+                slot.style.opacity = '1';
+            });
+            
+            // Mark unavailable slots
+            reservations.forEach(res => {
+                const startTime = res.start_time;
+                const endTime = res.end_time;
+                
+                timeSlots.forEach(slot => {
+                    const slotText = slot.textContent;
+                    const [slotStart, slotEnd] = slotText.split('-');
+                    
+                    // Check if this slot overlaps with a reservation
+                    if (startTime <= slotEnd && endTime >= slotStart) {
+                        slot.classList.add('unavailable');
+                        slot.disabled = true;
                     }
                 });
-            }
+            });
+                        // For current day, make past time slots unselectable
+            const now = new Date();
+            const today = now.toISOString().split('T')[0];
             
-            if (conflicts.length > 0) {
-                let conflictHtml = '<ul class="mb-0">';
-                conflicts.forEach(function(conflict) {
-                    conflictHtml += '<li>' + conflict.start_time + ' - ' + conflict.end_time + ': ' + conflict.user_name + '</li>';
-                });
-                conflictHtml += '</ul>';
+            if (reservationDateStr === today) {
+                const currentHour = now.getHours();
+                const currentMinute = now.getMinutes();
                 
-                document.getElementById('conflictList').innerHTML = conflictHtml;
-                document.getElementById('conflictAlert').style.display = 'block';
-            } else {
-                document.getElementById('conflictAlert').style.display = 'none';
+                timeSlots.forEach(slot => {
+                    const slotText = slot.textContent;
+                    const [slotStart] = slotText.split('-');
+                    const [slotHour, slotMinute] = slotStart.trim().split(':').map(num => parseInt(num, 10));
+                    
+                    // Make past time slots completely unselectable
+                    if (slotHour < currentHour || (slotHour === currentHour && slotMinute <= currentMinute)) {
+                        slot.classList.add('unavailable', 'unselectable');
+                        slot.disabled = true;
+                        // Remove click event listeners
+                        slot.onclick = null;
+                        slot.style.pointerEvents = 'none';
+                        slot.title = 'Geçmiş saatlere rezervasyon yapılamaz';
+                        // Add visual indicator
+                        slot.style.textDecoration = 'line-through';
+                        slot.style.opacity = '0.5';
+                    }
+                });
+                
+                console.log(`🕒 Made past time slots unselectable for today (current time: ${currentHour}:${currentMinute})`);
             }
         })
-        .catch(function(error) {
+        .catch(error => {
             console.error('Error checking availability:', error);
         });
 }
 
-function showRoomReservations(roomId, roomName) {
-    document.getElementById('roomModalTitle').innerHTML = 
-        '<i class="bi bi-calendar3 me-2"></i>' + roomName + ' Rezervasyonları';
+// Update form state
+function updateFormState() {
+    const submitBtn = document.getElementById('submitBtn');
+    const summary = document.getElementById('bookingSummary');
+    const summaryDetails = document.getElementById('summaryDetails');
     
-    const modal = new bootstrap.Modal(document.getElementById('roomReservationsModal'));
-    modal.show();
-    
-    loadRoomReservations(roomId, document.getElementById('modalDate').value);
-    
-    // Date change event for modal
-    document.getElementById('modalDate').onchange = function() {
-        loadRoomReservations(roomId, this.value);
-    };
+    if (selectedDate && selectedTimeSlot && selectedRoom) {
+        submitBtn.disabled = false;
+        summary.style.display = 'block';
+        
+        const roomName = selectedRoom === 1 ? 'Büyük Toplantı Odası' : 'Think Tank';
+        const dateStr = selectedDate.toLocaleDateString('tr-TR');
+        
+        summaryDetails.innerHTML = `
+            <strong>📍 Oda:</strong> ${roomName}<br>
+            <strong>📅 Tarih:</strong> ${dateStr}<br>
+            <strong>⏰ Saat:</strong> ${selectedTimeSlot.label}
+        `;
+    } else {
+        submitBtn.disabled = true;
+        summary.style.display = 'none';
+    }
 }
 
-function loadRoomReservations(roomId, date) {
-    document.getElementById('modalReservations').innerHTML = 
-        '<div class="text-center py-4"><div class="spinner-border" role="status"></div></div>';
-    
-    fetch('/api/room-reservations/' + roomId + '/' + date)
-        .then(function(response) { return response.json(); })
-        .then(function(reservations) {
-            let html = '';
-            
-            if (reservations.length > 0) {
-                html = '<div class="list-group">';
-                reservations.forEach(function(res) {
-                    html += '<div class="list-group-item">' +
-                            '<div class="d-flex justify-content-between align-items-center">' +
-                            '<div>' +
-                            '<h6 class="mb-1">' + res.start_time + ' - ' + res.end_time + '</h6>' +
-                            '<p class="mb-1">' + (res.purpose || 'Amaç belirtilmemiş') + '</p>' +
-                            '<small class="text-muted">Rezerve eden: ' + res.user_name + '</small>' +
-                            '</div>' +
-                            '<span class="badge bg-primary">Rezerve</span>' +
-                            '</div>' +
-                            '</div>';
-                });
-                html += '</div>';
-            } else {
-                html = '<div class="text-center py-4 text-muted">' +
-                       '<i class="bi bi-calendar-x display-6 mb-2"></i>' +
-                       '<h6>Bu tarihte rezervasyon yok</h6>' +
-                       '<p class="mb-0">Oda bu tarihte tamamen müsait.</p>' +
-                       '</div>';
-            }
-            
-            document.getElementById('modalReservations').innerHTML = html;
-        })
-        .catch(function(error) {
-            console.error('Error loading reservations:', error);
-            document.getElementById('modalReservations').innerHTML = 
-                '<div class="alert alert-danger">Rezervasyonlar yüklenirken hata oluştu.</div>';
-        });
-}
-
-// Form validation
+// Form submission
 document.getElementById('reservationForm').addEventListener('submit', function(e) {
-    const startTime = document.getElementById('start_time').value;
-    const endTime = document.getElementById('end_time').value;
+    e.preventDefault();
     
-    if (startTime >= endTime) {
-        e.preventDefault();
-        alert('Bitiş saati başlangıç saatinden sonra olmalıdır!');
-        return false;
+    if (!selectedDate || !selectedTimeSlot || !selectedRoom) {
+        showAlert('Lütfen tarih, saat ve oda seçimi yapınız.', 'danger');
+        return;
     }
     
-    // Check for conflicts
-    const conflictAlert = document.getElementById('conflictAlert');
-    if (conflictAlert.style.display !== 'none') {
-        if (!confirm('Çakışan rezervasyonlar var. Yine de devam etmek istiyor musunuz?')) {
-            e.preventDefault();
-            return false;
+    // Validate that the selected time is not in the past
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+    const selectedDateStr = selectedDate.toISOString().split('T')[0];
+    
+    if (selectedDateStr === today) {
+        const currentHour = now.getHours();
+        const currentMinute = now.getMinutes();
+        const [slotHour, slotMinute] = selectedTimeSlot.start.split(':').map(num => parseInt(num, 10));
+        
+        if (slotHour < currentHour || (slotHour === currentHour && slotMinute <= currentMinute)) {
+            showAlert('Geçmiş saatlere rezervasyon yapılamaz.', 'danger');
+            return;
         }
     }
+    
+    // Validate email
+    const email = document.querySelector('input[name="requester_email"]').value;
+    if (!email || !email.includes('@')) {
+        showAlert('Lütfen geçerli bir e-mail adresi giriniz.', 'danger');
+        return;
+    }
+    
+    // Validate name
+    const name = document.querySelector('input[name="requester_name"]').value;
+    if (!name.trim()) {
+        showAlert('Lütfen adınızı giriniz.', 'danger');
+        return;
+    }
+    
+    // Get selected participants for email notifications
+    const participantSelect = document.getElementById('participantSelect');
+    const selectedParticipants = Array.from(participantSelect.selectedOptions).map(option => ({
+        id: option.value,
+        name: option.textContent.replace(' (Siz)', '') // Remove '(Siz)' if present
+    }));
+    
+    // Show loading
+    const submitBtn = document.getElementById('submitBtn');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Rezervasyon oluşturuluyor...';
+    submitBtn.disabled = true;
+    
+    // Prepare form data
+    const formData = new FormData(this);
+    
+    // Add participant info for email notifications
+    formData.append('participants', JSON.stringify(selectedParticipants));
+    formData.append('send_notifications', 'true'); // Enable email notifications
+    
+    // AJAX form submission
+    fetch('/meeting-rooms/reserve', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert(`✅ ${data.message}`, 'success');
+            
+            // Show confirmation details
+            setTimeout(() => {
+                const confirmationHtml = `
+                    <div class="alert alert-success">
+                        <h6>🎉 Rezervasyon Başarılı!</h6>
+                        <p class="mb-1"><strong>Rezervasyon Kodu:</strong> ${data.confirmation_code}</p>
+                        <p class="mb-0">Rezervasyon detayları e-mail adresinize gönderildi.</p>
+                    </div>
+                `;
+                document.getElementById('bookingAlert').innerHTML = confirmationHtml;
+            }, 2000);
+            
+            // Reset form
+            document.getElementById('reservationForm').reset();
+            selectedDate = null;
+            selectedTimeSlot = null;
+            document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('selected'));
+            document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+            
+            // ✅ IMPORTANT: Reload month reservations to show new reservation
+            console.log('🔄 Rezervasyon başarılı - Takvim yenileniyor...');
+            loadMonthReservations();
+            
+            // Update the reservation list
+            fetchAllReservations();
+            
+            // Refresh availability for selected date
+            if (selectedDate) {
+                checkAvailability();
+            }
+        } else {
+            showAlert(`❌ ${data.message || 'Bir hata oluştu.'}`, 'danger');
+        }
+        
+        submitBtn.innerHTML = originalText;
+        updateFormState();
+    })
+    .catch(error => {
+        console.error('Reservation error:', error);
+        showAlert('❌ Rezervasyon oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.', 'danger');
+        
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
 });
-</script>
 
-<style>
-.table th {
-    border-top: none;
+// Show alert
+function showAlert(message, type) {
+    const alertDiv = document.getElementById('bookingAlert');
+    alertDiv.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+    
+    if (type === 'success') {
+        setTimeout(() => {
+            alertDiv.innerHTML = '';
+        }, 5000);
+    }
 }
-.badge {
-    font-size: 0.75em;
+
+// Show reservation tooltip
+function showReservationTooltip(event) {
+    const dayElement = event.target;
+    const dateKey = dayElement.dataset.dateKey;
+    const reservations = monthReservations[dateKey];
+    
+    if (!reservations || reservations.length === 0) return;
+    
+    const tooltip = document.getElementById('reservationTooltip');
+    const tooltipTitle = document.getElementById('tooltipTitle');
+    const tooltipContent = document.getElementById('tooltipContent');
+    
+    // Format date for title
+    const date = new Date(dateKey + 'T00:00:00');
+    const dateStr = date.toLocaleDateString('tr-TR', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+    });
+    
+    tooltipTitle.textContent = dateStr;
+    
+    // Build reservations content
+    let content = '';
+    reservations.forEach(res => {
+        const requesterName = res.requester_name || `${res.first_name} ${res.last_name}` || 'Bilinmeyen';
+        content += `
+            <div class="tooltip-reservation">
+                <div class="tooltip-time">${res.start_time} - ${res.end_time}</div>
+                <div class="tooltip-room">${res.room_name}</div>
+                <div class="tooltip-person">👤 ${requesterName}</div>
+            </div>
+        `;
+    });
+    
+    tooltipContent.innerHTML = content;
+    
+    // ✅ Position tooltip near cursor (improved)
+    positionTooltipNearCursor(event, tooltip);
+    
+    // Show tooltip
+    tooltip.classList.add('show');
+    
+    // Add mousemove tracking for smooth following
+    dayElement.addEventListener('mousemove', handleTooltipMouseMove);
 }
-</style>
-{% endblock %} 
+
+// Position tooltip right next to cursor
+function positionTooltipNearCursor(event, tooltip) {
+    const offsetX = 5; // Closer distance from cursor
+    const offsetY = 0;  // Align with cursor height
+    
+    tooltip.style.position = 'fixed';
+    tooltip.style.left = `${event.clientX + offsetX}px`;
+    tooltip.style.top = `${event.clientY + offsetY}px`;
+    tooltip.style.transform = 'none';
+    tooltip.style.zIndex = '9999';
+    
+    // Ensure tooltip stays within viewport
+    const tooltipRect = tooltip.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    // Check if tooltip is going outside the right edge
+    if (tooltipRect.right > viewportWidth) {
+        tooltip.style.left = `${event.clientX - tooltipRect.width - 5}px`;
+    }
+    
+    // Check if tooltip is going outside the bottom edge
+    if (tooltipRect.bottom > viewportHeight) {
+        tooltip.style.top = `${event.clientY - tooltipRect.height - 5}px`;
+    }
+}
+
+// Handle tooltip mouse movement
+function handleTooltipMouseMove(event) {
+    const tooltip = document.getElementById('reservationTooltip');
+    if (tooltip.classList.contains('show')) {
+        positionTooltipNearCursor(event, tooltip);
+    }
+}
+
+// Hide reservation tooltip
+function handleTooltipMouseOut(event) {
+    const tooltip = document.getElementById('reservationTooltip');
+    tooltip.classList.remove('show');
+    
+    // Remove mousemove tracking
+    event.target.removeEventListener('mousemove', handleTooltipMouseMove);
+}
+
+// Load all reservations for the list view
+function loadAllReservations() {
+    const reservationListBody = document.getElementById('reservationListBody');
+    const loader = document.getElementById('reservationListLoader');
+    
+    // Show loader
+    if (loader) {
+        loader.style.display = '';
+    }
+    
+    // Get current date for filtering (we'll only show future reservations)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayStr = today.toISOString().split('T')[0];
+    
+    // Fetch all reservations from both rooms
+    Promise.all([
+        fetch(`/api/room-reservations/all/1`).then(r => r.json()),
+        fetch(`/api/room-reservations/all/2`).then(r => r.json())
+    ]).then(([room1Reservations, room2Reservations]) => {
+        // Combine all reservations and add room info
+        const allReservations = [
+            ...room1Reservations.map(r => ({
+                ...r,
+                room_name: 'Büyük Toplantı Odası',
+                room_id: 1,
+                reservation_date: r.date // normalize field for consistency
+            })),
+            ...room2Reservations.map(r => ({
+                ...r,
+                room_name: 'Think Tank',
+                room_id: 2,
+                reservation_date: r.date
+            }))
+        ];
+        
+        // Filter to show only current and future reservations
+        const futureReservations = allReservations.filter(r => r.reservation_date >= todayStr);
+        
+        // Sort by date and time
+        futureReservations.sort((a, b) => {
+            if (a.reservation_date !== b.reservation_date) {
+                return a.reservation_date.localeCompare(b.reservation_date);
+            }
+            return a.start_time.localeCompare(b.start_time);
+        });
+        
+        // Remove loader
+        if (loader) {
+            loader.style.display = 'none';
+        }
+        
+        // Generate HTML for each reservation
+        if (futureReservations.length > 0) {
+            const html = futureReservations.map(res => {
+                const date = new Date(res.reservation_date);
+                const formattedDate = date.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                const requesterName = res.requester_name || `${res.first_name} ${res.last_name}` || 'Bilinmeyen';
+                
+                return `
+                    <tr>
+                        <td>${formattedDate}</td>
+                        <td>${res.start_time} - ${res.end_time}</td>
+                        <td>${res.room_name}</td>
+                        <td>${requesterName}</td>
+                        <td>${res.requester_email || '-'}</td>
+                        <td>${res.attendees_count || '1'}</td>
+                        <td>${res.purpose || '-'}</td>
+                        <td><span class="badge bg-success">Onaylandı</span></td>
+                    </tr>
+                `;
+            }).join('');
+            
+            reservationListBody.innerHTML = html;
+        } else {
+            // No reservations
+            reservationListBody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="text-center py-4">
+                        <i class="bi bi-calendar-x me-2"></i>
+                        Aktif rezervasyon bulunmamaktadır.
+                    </td>
+                </tr>
+            `;
+        }
+    }).catch(error => {
+        console.error('❌ Error loading all reservations:', error);
+        
+        // Show error message
+        reservationListBody.innerHTML = `
+            <tr>
+                <td colspan="8" class="text-center py-4 text-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    Rezervasyon listesi yüklenemedi. Lütfen daha sonra tekrar deneyin.
+                </td>
+            </tr>
+        `;
+    });
+}
+
+// Auto-fill user information if available
+function autoFillUserInfo() {
+    // Try to get user info from session or profile data
+    fetch('/api/user/profile')
+        .then(response => response.json())
+        .then(user => {
+            if (user && user.id) {
+                // Fill in form fields with user info
+                if (user.first_name) {
+                    document.querySelector('input[name="requester_name"]').value = user.first_name;
+                }
+                
+                if (user.last_name) {
+                    document.querySelector('input[name="requester_surname"]').value = user.last_name;
+                }
+                
+                if (user.email) {
+                    document.querySelector('input[name="requester_email"]').value = user.email;
+                }
+                
+                console.log('✅ User form fields auto-filled with profile data');
+            }
+        })
+        .catch(error => {
+            console.error('❌ Error loading user profile:', error);
+        });
+        
+    // Load participant list
+    loadParticipantList();
+}
+
+// Load participant list for selection
+function loadParticipantList() {
+    const participantSelect = document.getElementById('participantSelect');
+    
+    if (!participantSelect) return;
+    
+    // Clear existing options except the loading message
+    participantSelect.innerHTML = '<option value="" disabled>Yükleniyor...</option>';
+    
+    // Fetch users from API
+    fetch('/api/users/all')
+        .then(response => response.json())
+        .then(users => {
+            participantSelect.innerHTML = ''; // Clear loading message
+            
+            // Add current user first
+            fetch('/api/user/profile')
+                .then(response => response.json())
+                .then(currentUser => {
+                    if (currentUser && currentUser.id) {
+                        const option = document.createElement('option');
+                        option.value = currentUser.id;
+                        option.textContent = `${currentUser.first_name} ${currentUser.last_name} (Siz)`;
+                        option.selected = true; // Auto-select current user
+                        participantSelect.appendChild(option);
+                    }
+                    
+                    // Add all other users
+                    users.forEach(user => {
+                        // Skip current user since we already added them
+                        if (currentUser && user.id === currentUser.id) return;
+                        
+                        const option = document.createElement('option');
+                        option.value = user.id;
+                        option.textContent = `${user.first_name} ${user.last_name}`;
+                        participantSelect.appendChild(option);
+                    });
+                    
+                    console.log('✅ Participant list loaded with', users.length, 'users');
+                })
+                .catch(error => {
+                    console.error('❌ Error loading current user:', error);
+                    
+                    // If we can't get current user, just show all users
+                    users.forEach(user => {
+                        const option = document.createElement('option');
+                        option.value = user.id;
+                        option.textContent = `${user.first_name} ${user.last_name}`;
+                        participantSelect.appendChild(option);
+                    });
+                });
+        })
+        .catch(error => {
+            console.error('❌ Error loading users for participant list:', error);
+            participantSelect.innerHTML = '<option value="" disabled>Kullanıcılar yüklenemedi</option>';
+        });
+}
+</script>
+{% endblock %}

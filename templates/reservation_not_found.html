@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Rezervasyon Bulunamadı{% endblock %}
+{% block page_title %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+    }
+    
+    .navbar, .main-content {
+        display: none;
+    }
+    
+    .error-container {
+        max-width: 600px;
+        margin: 100px auto;
+        padding: 20px;
+        min-height: 60vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+    
+    .error-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        overflow: hidden;
+        width: 100%;
+        padding: 50px 30px;
+    }
+    
+    .error-icon {
+        font-size: 5rem;
+        margin-bottom: 20px;
+        opacity: 0.8;
+    }
+    
+    .error-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 15px;
+    }
+    
+    .error-message {
+        font-size: 1.1rem;
+        color: #666;
+        margin-bottom: 30px;
+        line-height: 1.6;
+    }
+    
+    .btn {
+        display: inline-block;
+        padding: 15px 30px;
+        background: linear-gradient(135deg, #00b4a6, #007991);
+        color: white;
+        text-decoration: none;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: all 0.3s;
+        margin: 10px;
+    }
+    
+    .btn:hover {
+        background: linear-gradient(135deg, #007991, #005662);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,180,166,0.3);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .btn-outline {
+        background: white;
+        color: #00b4a6;
+        border: 2px solid #00b4a6;
+    }
+    
+    .btn-outline:hover {
+        background: #00b4a6;
+        color: white;
+    }
+    
+    @media (max-width: 768px) {
+        .error-container {
+            margin: 50px auto;
+            padding: 10px;
+        }
+        
+        .error-card {
+            padding: 40px 20px;
+        }
+        
+        .error-icon {
+            font-size: 4rem;
+        }
+        
+        .error-title {
+            font-size: 1.6rem;
+        }
+        
+        .btn {
+            display: block;
+            margin: 10px 0;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="error-container">
+    <div class="error-card">
+        <div class="error-icon">🔍</div>
+        <h1 class="error-title">Rezervasyon Bulunamadı</h1>
+        <p class="error-message">
+            Aradığınız rezervasyon bulunamadı. Rezervasyon kodu hatalı olabilir 
+            veya rezervasyon iptal edilmiş olabilir.
+        </p>
+        
+        <div>
+            <a href="/meeting-rooms" class="btn">
+                🏢 Yeni Rezervasyon Yap
+            </a>
+            
+            <a href="javascript:history.back()" class="btn btn-outline">
+                ← Geri Dön
+            </a>
+        </div>
+        
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+            <p style="color: #999; font-size: 0.9rem;">
+                Yardıma mı ihtiyacınız var?<br>
+                <strong>📧 Email:</strong> portal@pluskitchen.com.tr<br>
+                <strong>📱 Telefon:</strong> 0212 XXX XX XX
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %} 

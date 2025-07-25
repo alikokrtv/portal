@@ -26,7 +26,12 @@
                             <h4 class="mb-0">{{ announcement.title }}</h4>
                             <small class="text-muted">
                                 <i class="bi bi-calendar3 me-1"></i>
-                                {{ announcement.created_at.strftime('%d %B %Y, %H:%M') if announcement.created_at else 'Tarih bilinmiyor' }}
+                                {% if announcement.created_at %}
+                                    {% set ay_adlari = ['', 'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'] %}
+                                    {{ announcement.created_at.day }} {{ ay_adlari[announcement.created_at.month] }} {{ announcement.created_at.year }}, {{ announcement.created_at.strftime('%H:%M') }}
+                                {% else %}
+                                    Tarih bilinmiyor
+                                {% endif %}
                             </small>
                         </div>
                     </div>

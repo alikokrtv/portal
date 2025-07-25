@@ -180,13 +180,16 @@
 <script>
 {% if session.is_admin %}
 function editDepartment(id) {
-    // Departman düzenleme modal'ını aç
-    console.log('Edit department:', id);
+    window.location.href = '/departments/' + id + '/edit';
 }
 
 function deleteDepartment(id) {
     if (confirm('Bu departmanı silmek istediğinizden emin misiniz?')) {
-        window.location.href = '/departments/delete/' + id;
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/departments/${id}/delete`;
+        document.body.appendChild(form);
+        form.submit();
     }
 }
 {% endif %}

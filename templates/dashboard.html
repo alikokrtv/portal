@@ -4,7 +4,53 @@
 {% block page_title %}Plus Kitchen Portal{% endblock %}
 
 {% block content %}
-<!-- Widget'lar kaldırıldı -->
+<!-- Hızlı Bağlantılar -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card modern-quick-links-card">
+            <div class="card-header modern-quick-links-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-lightning-fill me-2"></i>
+                    Hızlı Bağlantılar
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-lg-6 col-md-6">
+                        <a href="https://plusacademy.myenocta.com/plusacademy" target="_blank" class="quick-link-item education">
+                            <div class="quick-link-icon">
+                                <i class="bi bi-mortarboard-fill"></i>
+                            </div>
+                            <div class="quick-link-content">
+                                <h6 class="quick-link-title">Eğitim Platformu</h6>
+                                <p class="quick-link-desc">Plus Academy - Online eğitim sistemi</p>
+                                <span class="quick-link-url">plusacademy.myenocta.com</span>
+                            </div>
+                            <div class="quick-link-arrow">
+                                <i class="bi bi-arrow-up-right"></i>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-lg-6 col-md-6">
+                        <a href="https://my.idenfit.com/human-resources" target="_blank" class="quick-link-item payroll">
+                            <div class="quick-link-icon">
+                                <i class="bi bi-cash-coin"></i>
+                            </div>
+                            <div class="quick-link-content">
+                                <h6 class="quick-link-title">Bordro Sistemi</h6>
+                                <p class="quick-link-desc">Idenfit - İnsan kaynakları sistemi</p>
+                                <span class="quick-link-url">my.idenfit.com</span>
+                            </div>
+                            <div class="quick-link-arrow">
+                                <i class="bi bi-arrow-up-right"></i>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="row">
     <!-- Ana İçerik - Duyurular (Orta) -->
@@ -50,82 +96,352 @@
 
     <!-- Sağ Sidebar -->
     <div class="col-md-4">
-        <!-- Yaklaşan Doğum Günleri -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="bi bi-calendar-heart me-2"></i>
-                    Yaklaşan Doğum Günleri
-                </h5>
+        <!-- Günlük Menü Widget (Sadece Genel Müdürlük) -->
+        {% if daily_menu %}
+        <div class="card mb-4 modern-widget-card">
+            <div class="card-header modern-menu-header">
+                <div class="header-content">
+                    <div class="header-icon">
+                        <i class="bi bi-cup-hot-fill"></i>
             </div>
-            <div class="card-body">
-                {% if upcoming_birthdays %}
-                    {% for birthday in upcoming_birthdays %}
-                        <div class="d-flex justify-content-between align-items-center {% if not loop.last %}border-bottom{% endif %} pb-2 {% if not loop.last %}mb-2{% endif %}">
-                            <div class="d-flex align-items-center">
-                                <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
-                                    <span class="text-white fw-bold">{{ birthday.first_name[0] }}{{ birthday.last_name[0] }}</span>
-                                </div>
-                                <div>
-                                    <div class="fw-semibold">{{ birthday.first_name }} {{ birthday.last_name }}</div>
-                                    <small class="text-muted">
-                                        {% if birthday.birth_day and birthday.turkish_month %}
-                                            {{ birthday.birth_day }} {{ birthday.turkish_month }}
-                                        {% else %}
-                                            Tarih bilinmiyor
+                    <div class="header-text">
+                        <h5 class="mb-0">Günlük Menü</h5>
+                        <small class="header-subtitle">Yemek programı</small>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                {% if daily_menu %}
+                    <div id="menuCarousel" class="carousel slide modern-menu-carousel" data-bs-ride="carousel" data-bs-interval="7000">
+                        <div class="carousel-inner">
+                            {% for menu in daily_menu %}
+                            <div class="carousel-item {% if loop.first %}active{% endif %}">
+                                <div class="modern-menu-slide">
+                                    <div class="slide-pattern"></div>
+                                    <div class="slide-content">
+                                        <div class="modern-avatar-container">
+                                            <div class="modern-menu-avatar">
+                                                <div class="menu-date-badge">
+                                                    <div class="date-day">{{ menu.menu_date.strftime('%d') }}</div>
+                                                    <div class="date-month">{{ ['', 'Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'][menu.menu_date.month] }}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Bugün badge'i -->
+                                        {% if today_date and menu.menu_date == today_date %}
+                                        <div class="menu-celebration-container">
+                                            <div class="celebration-badge menu-celebration">
+                                                <span>🍽️</span>
+                                                <span>BUGÜNKÜ MENÜ</span>
+                                            </div>
+                                        </div>
                                         {% endif %}
-                                    </small>
+                                        
+                                        <div class="employee-info text-center">
+                                            <h4 class="employee-name">{{ menu.day_name }}</h4>
+                                            <div class="menu-date-modern">
+                                                <i class="bi bi-calendar-event me-2"></i>
+                                                <span>{{ menu.menu_date.strftime('%d.%m.%Y') }}</span>
+                                            </div>
+                                            
+                                            <div class="menu-items-modern">
+                                                {% if menu.soup %}
+                                                <div class="menu-item-modern">
+                                                    <span class="item-emoji">🍲</span>
+                                                    <span class="item-name">{{ menu.soup }}</span>
+                                                </div>
+                                                {% endif %}
+                                                
+                                                {% if menu.main_dish %}
+                                                <div class="menu-item-modern">
+                                                    <span class="item-emoji">🍽️</span>
+                                                    <span class="item-name">{{ menu.main_dish }}</span>
+                                                </div>
+                                                {% endif %}
+                                                
+                                                {% if menu.side_dish %}
+                                                <div class="menu-item-modern">
+                                                    <span class="item-emoji">🍚</span>
+                                                    <span class="item-name">{{ menu.side_dish }}</span>
+                                                </div>
+                                                {% endif %}
+                                                
+                                                {% if menu.dessert %}
+                                                <div class="menu-item-modern">
+                                                    <span class="item-emoji">🍰</span>
+                                                    <span class="item-name">{{ menu.dessert }}</span>
+                                                </div>
+                                                {% endif %}
+                                                
+                                                {% if menu.drink %}
+                                                <div class="menu-item-modern">
+                                                    <span class="item-emoji">🥤</span>
+                                                    <span class="item-name">{{ menu.drink }}</span>
+                                                </div>
+                                                {% endif %}
+                                                
+                                                {% if menu.appetizer %}
+                                                <div class="menu-item-modern">
+                                                    <span class="item-emoji">🥗</span>
+                                                    <span class="item-name">{{ menu.appetizer }}</span>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="text-end">
-                                {% if birthday.days_until_birthday == 0 %}
-                                    <span class="badge bg-success fs-6">🎉 BUGÜN!</span>
-                                {% else %}
-                                    <span class="badge bg-info">{{ birthday.birthday_text }}</span>
+                            {% endfor %}
+                        </div>
+                        
+                        <!-- Carousel Controls -->
+                        <button class="carousel-control-prev" type="button" data-bs-target="#menuCarousel" data-bs-slide="prev" aria-label="Önceki">
+                            <i class="bi bi-chevron-left" aria-hidden="true"></i>
+                            <span class="visually-hidden">Önceki</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#menuCarousel" data-bs-slide="next" aria-label="Sonraki">
+                            <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                            <span class="visually-hidden">Sonraki</span>
+                        </button>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-cup-hot display-4 mb-3"></i>
+                        <p>Henüz menü bulunmuyor.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Online Kullanıcılar Widget (Sadece Admin ve İK Yöneticileri) -->
+        {% if session.is_admin or session.role_name == 'İK Yöneticisi' %}
+        <div class="card mb-4 modern-widget-card">
+            <div class="card-header modern-online-header">
+                <div class="header-content">
+                    <div class="header-icon">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <div class="header-text">
+                        <h5 class="mb-0">Çevrimiçi Kullanıcılar</h5>
+                        <small class="header-subtitle">Son 5 dakika içinde aktif</small>
+                    </div>
+                    <div class="online-count-badge">
+                        <span id="onlineCount">0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="online-users-container" id="onlineUsersContainer">
+                    <div class="text-center text-muted py-4" id="onlineUsersEmpty">
+                        <i class="bi bi-people display-4 mb-3"></i>
+                        <p>Çevrimiçi kullanıcı bulunamadı</p>
+                    </div>
+                    <div id="onlineUsersList" class="online-users-list" style="display: none;">
+                        <!-- Online kullanıcılar buraya yüklenecek -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Yaklaşan Doğum Günleri Carousel -->
+        <div class="card mb-4 modern-widget-card">
+            <div class="card-header modern-birthday-header">
+                <div class="header-content">
+                    <div class="header-icon">
+                        <i class="bi bi-calendar-heart-fill"></i>
+            </div>
+                    <div class="header-text">
+                        <h5 class="mb-0">Yaklaşan Doğum Günleri</h5>
+                        <small class="header-subtitle">Özel günler</small>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                {% if upcoming_birthdays %}
+                    <div id="birthdayCarousel" class="carousel slide modern-birthday-carousel" data-bs-ride="carousel" data-bs-interval="5000">
+                        <div class="carousel-inner">
+                    {% for birthday in upcoming_birthdays %}
+                                <div class="carousel-item {% if loop.first %}active{% endif %}">
+                                    <div class="modern-birthday-slide">
+                                        <div class="slide-pattern"></div>
+                                        <div class="slide-content">
+                                            <div class="modern-avatar-container">
+                                                <div class="modern-avatar">
+                                                    <span class="avatar-letter">{{ birthday.first_name[0] }}{{ birthday.last_name[0] }}</span>
+                                </div>
+                                            </div>
+                                            
+                                            <!-- Birthday Badge - Sadece bugün doğum günü olanlarda göster -->
+                                            {% if birthday.days_until_birthday == 0 %}
+                                            <div class="birthday-celebration-container">
+                                                <div class="celebration-badge birthday-celebration">
+                                                    <span>🎂</span>
+                                                    <span>BUGÜN DOĞUM GÜNÜ</span>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                            
+                                                                        <div class="employee-info text-center">
+                                <h4 class="employee-name">{{ birthday.first_name }} {{ birthday.last_name }}</h4>
+                                {% if birthday.department %}
+                                <div class="department-tag mb-2">
+                                    <i class="bi bi-building me-1"></i>
+                                    <span>{{ birthday.department }}</span>
+                                </div>
                                 {% endif %}
+                                <div class="birthday-date-modern">
+                                    <i class="bi bi-calendar-event me-2"></i>
+                                    <span>
+                        {% if birthday.birth_day and birthday.turkish_month %}
+                            {{ birthday.birth_day }} {{ birthday.turkish_month }}
+                        {% else %}
+                            Tarih bilinmiyor
+                                        {% endif %}
+                                                    </span>
+                                </div>
+                                                <div class="birthday-status">
+                                {% if birthday.days_until_birthday == 0 %}
+                                                        <span class="status-badge birthday-today-status">🎉 BUGÜN!</span>
+                                {% else %}
+                                                        <span class="status-badge birthday-upcoming-status">{{ birthday.birthday_text }}</span>
+                                {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
                             </div>
                         </div>
                     {% endfor %}
+                        </div>
+                        
+                        <!-- Carousel Controls -->
+                        {% if upcoming_birthdays|length > 1 %}
+                        <button class="carousel-control-prev" type="button" data-bs-target="#birthdayCarousel" data-bs-slide="prev">
+                            <i class="bi bi-chevron-left" style="font-size: 20px; color: #64748b;"></i>
+                            <span class="visually-hidden">Önceki</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#birthdayCarousel" data-bs-slide="next">
+                            <i class="bi bi-chevron-right" style="font-size: 20px; color: #64748b;"></i>
+                            <span class="visually-hidden">Sonraki</span>
+                        </button>
+                        {% endif %}
+                    </div>
                 {% else %}
-                    <div class="text-center text-muted py-3">
-                        <i class="bi bi-calendar-heart display-6 mb-2"></i>
-                        <p class="mb-0">Yaklaşan doğum günü yok.</p>
+                    <div class="modern-birthday-slide">
+                        <div class="widget-empty-state">
+                            <div class="empty-icon">🎂</div>
+                            <p class="empty-text">Yaklaşan doğum günü yok</p>
+                        </div>
                     </div>
                 {% endif %}
             </div>
         </div>
 
-        <!-- Terfi Duyuları -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="bi bi-trophy me-2"></i>
-                    Son Terfi Duyuları
-                </h5>
+        <!-- Terfi Duyuruları Slider -->
+        <div class="card mb-4 modern-promotion-card">
+            <div class="card-header modern-promotion-header">
+                <div class="header-content">
+                    <div class="header-icon">
+                        <i class="bi bi-trophy-fill"></i>
+                    </div>
+                    <div class="header-text">
+                        <h5 class="mb-0">Son Terfi Duyuruları</h5>
+                        <small class="header-subtitle">Başarılı çalışanlarımız</small>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
+            <div class="card-body p-0">
                 {% if recent_promotions %}
+                    <div id="promotionCarousel" class="carousel slide modern-promotion-carousel" data-bs-ride="carousel" data-bs-interval="6000">
+                        <div class="carousel-inner">
                     {% for promotion in recent_promotions %}
-                        <div class="d-flex justify-content-between align-items-center {% if not loop.last %}border-bottom{% endif %} pb-2 {% if not loop.last %}mb-2{% endif %}">
-                            <div class="d-flex align-items-center">
-                                <div class="rounded-circle bg-success d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
-                                    <span class="text-white fw-bold">{{ promotion.first_name[0] }}{{ promotion.last_name[0] }}</span>
+                                <div class="carousel-item{% if loop.first %} active{% endif %}">
+                                    <div class="modern-promotion-slide">
+                                        <!-- Background Pattern -->
+                                        <div class="slide-pattern"></div>
+                                        
+                                        <!-- Content Container -->
+                                        <div class="slide-content">
+                                            <!-- Avatar Section -->
+                                            <div class="modern-avatar-container">
+                                                <div class="modern-avatar">
+                                                    <span class="avatar-letter">{{ promotion.employee_name[0] if promotion.employee_name else 'T' }}</span>
+                                                    <div class="avatar-ring"></div>
+                                        </div>
+                                                <div class="success-icon">✨</div>
+                                            </div>
+                                            
+                                            <!-- Employee Info -->
+                                            <div class="employee-info">
+                                                <h4 class="employee-name">{{ promotion.employee_name }}</h4>
+                                                <div class="department-tag">
+                                                    <i class="bi bi-building me-1"></i>
+                                                    <span>{{ promotion.department }}</span>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Position Flow -->
+                                            <div class="position-flow">
+                                                <div class="position-card from-position">
+                                                    <div class="position-label">Önceki</div>
+                                                    <div class="position-title">{{ promotion.current_position or 'Pozisyon' }}</div>
+                                                </div>
+                                                
+                                                <div class="flow-arrow">
+                                                    <div class="arrow-line"></div>
+                                                    <div class="arrow-head">➤</div>
+                                                </div>
+                                                
+                                                <div class="position-card to-position">
+                                                    <div class="position-label">Yeni</div>
+                                                    <div class="position-title">{{ promotion.new_position }}</div>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Promotion Badge -->
+                                            <div class="promotion-celebration">
+                                                <div class="celebration-badge">
+                                                    <i class="bi bi-award-fill me-1"></i>
+                                                    <span>TERFİ</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Date Footer -->
+                                        <div class="slide-footer">
+                                            <div class="promotion-date-modern">
+                                                <i class="bi bi-calendar-event me-2"></i>
+                                                <span>
+                                    {% if promotion.promotion_date %}
+                                        {% set ay_adlari = ['', 'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'] %}
+                                        {{ promotion.promotion_date.day }} {{ ay_adlari[promotion.promotion_date.month] }} {{ promotion.promotion_date.year }}
+                                    {% else %}
+                                        Yakın zamanda
+                                    {% endif %}
+                                </span>
+                                            </div>
+                                        </div>
                                 </div>
-                                <div>
-                                    <div class="fw-semibold">{{ promotion.first_name }} {{ promotion.last_name }}</div>
-                                    <small class="text-muted">
-                                        {{ promotion.old_position or 'Önceki Pozisyon' }} → {{ promotion.new_position }}
-                                    </small>
                                 </div>
+                            {% endfor %}
                             </div>
-                            <div class="text-end">
-                                <span class="badge bg-success">🎉 Terfi!</span>
-                                <div><small class="text-muted">{{ promotion.promotion_date.strftime('%d/%m/%Y') if promotion.promotion_date else 'Yeni' }}</small></div>
-                            </div>
+                        
+                        <!-- Carousel Controls - Clean Icons -->
+                            <button class="carousel-control-prev" type="button" data-bs-target="#promotionCarousel" data-bs-slide="prev">
+                            <i class="bi bi-chevron-left" style="font-size: 20px; color: #64748b;"></i>
+                                <span class="visually-hidden">Önceki</span>
+                            </button>
+                            <button class="carousel-control-next" type="button" data-bs-target="#promotionCarousel" data-bs-slide="next">
+                            <i class="bi bi-chevron-right" style="font-size: 20px; color: #64748b;"></i>
+                                <span class="visually-hidden">Sonraki</span>
+                            </button>
+                            
+
                         </div>
-                    {% endfor %}
                 {% else %}
-                    <div class="text-center text-muted py-3">
+                    <div class="text-center text-muted py-4">
                         <i class="bi bi-trophy display-6 mb-2"></i>
                         <p class="mb-0">Yakın zamanda terfi duyurusu yok.</p>
                     </div>
@@ -133,48 +449,87 @@
             </div>
         </div>
 
-        <!-- İş Yıl Dönümleri -->
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="bi bi-award me-2"></i>
-                    İş Yıl Dönümleri
-                </h5>
+        <!-- İş Yıl Dönümleri Carousel -->
+        <div class="card modern-widget-card">
+            <div class="card-header modern-anniversary-header">
+                <div class="header-content">
+                    <div class="header-icon">
+                        <i class="bi bi-award-fill"></i>
             </div>
-            <div class="card-body">
+                    <div class="header-text">
+                        <h5 class="mb-0">İş Yıl Dönümleri</h5>
+                        <small class="header-subtitle">Sadakat ödülleri</small>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
                 {% if upcoming_anniversaries %}
+                    <div id="anniversaryCarousel" class="carousel slide modern-anniversary-carousel" data-bs-ride="carousel" data-bs-interval="6000">
+                        <div class="carousel-inner">
                     {% for anniversary in upcoming_anniversaries %}
-                        <div class="d-flex justify-content-between align-items-center {% if not loop.last %}border-bottom{% endif %} pb-2 {% if not loop.last %}mb-2{% endif %}">
-                            <div class="d-flex align-items-center">
-                                <div class="rounded-circle bg-warning d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
-                                    <span class="text-dark fw-bold">{{ anniversary.first_name[0] }}{{ anniversary.last_name[0] }}</span>
+                                <div class="carousel-item {% if loop.first %}active{% endif %}">
+                                    <div class="modern-anniversary-slide">
+                                        <div class="slide-pattern"></div>
+                                        <div class="slide-content">
+                                            <div class="modern-avatar-container">
+                                                <div class="modern-avatar">
+                                                    <span class="avatar-letter">{{ anniversary.first_name[0] }}{{ anniversary.last_name[0] }}</span>
                                 </div>
-                                <div>
-                                    <div class="fw-semibold">{{ anniversary.first_name }} {{ anniversary.last_name }}</div>
-                                    <small class="text-muted">
+                                            </div>
+                                            
+                                            <!-- Anniversary Badge -->
+                                            <div class="anniversary-celebration-container">
+                                                <div class="celebration-badge anniversary-celebration">
+                                                    <span>🏆</span>
+                                                    <span>YIL DÖNÜMÜ</span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="employee-info text-center">
+                                                <h4 class="employee-name">{{ anniversary.first_name }} {{ anniversary.last_name }}</h4>
+                                                <div class="anniversary-department">
                                         {% if anniversary.department %}
-                                            {{ anniversary.department }} • 
+                                                        <i class="bi bi-building me-2"></i>
+                                                        <span>{{ anniversary.department }}</span>
                                         {% endif %}
-                                        {{ anniversary.hire_date.strftime('%d/%m/%Y') if anniversary.hire_date else 'N/A' }}
-                                    </small>
                                 </div>
+                                                <div class="anniversary-date-modern">
+                                                    <i class="bi bi-calendar-event me-2"></i>
+                                                    <span>{{ anniversary.hire_date.strftime('%d/%m/%Y') if anniversary.hire_date else 'N/A' }}</span>
                             </div>
-                            <div class="text-end">
+                                                <div class="anniversary-status">
                                 {% if anniversary.days_until_anniversary == 0 %}
-                                    <span class="badge bg-warning text-dark fs-6">🏆 {{ anniversary.years_of_service }}. YIL!</span>
+                                                        <span class="status-badge anniversary-today-status">🏆 {{ anniversary.years_of_service }}. YIL!</span>
                                 {% else %}
-                                    <div>
-                                        <span class="badge bg-secondary">{{ anniversary.anniversary_text }}</span>
-                                        <div><small class="text-muted">{{ anniversary.years_of_service }}. yıl</small></div>
-                                    </div>
+                                                        <span class="status-badge anniversary-upcoming-status">{{ anniversary.anniversary_text }}</span>
+                                                        <small class="anniversary-year-status">{{ anniversary.years_of_service }}. yıl</small>
                                 {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
                             </div>
                         </div>
                     {% endfor %}
+                        </div>
+                        
+                        <!-- Carousel Controls -->
+                        {% if upcoming_anniversaries|length > 1 %}
+                        <button class="carousel-control-prev" type="button" data-bs-target="#anniversaryCarousel" data-bs-slide="prev">
+                            <i class="bi bi-chevron-left" style="font-size: 20px; color: #64748b;"></i>
+                            <span class="visually-hidden">Önceki</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#anniversaryCarousel" data-bs-slide="next">
+                            <i class="bi bi-chevron-right" style="font-size: 20px; color: #64748b;"></i>
+                            <span class="visually-hidden">Sonraki</span>
+                        </button>
+                        {% endif %}
+                    </div>
                 {% else %}
-                    <div class="text-center text-muted py-3">
-                        <i class="bi bi-award display-6 mb-2"></i>
-                        <p class="mb-0">Yaklaşan yıl dönümü yok.</p>
+                    <div class="modern-anniversary-slide">
+                        <div class="widget-empty-state">
+                            <div class="empty-icon">🏆</div>
+                            <p class="empty-text">Yaklaşan yıl dönümü yok</p>
+                        </div>
                     </div>
                 {% endif %}
             </div>
@@ -188,9 +543,1984 @@
 {% include 'modals/new_announcement_modal.html' %}
 {% include 'modals/new_message_modal.html' %}
 
+<style>
+/* Modern Terfi Carousel - Tema Renkleri ile */
+
+/* Ana Card Stilleri */
+.modern-promotion-card {
+    border: none;
+    border-radius: 24px;
+    overflow: hidden;
+    background: var(--card);
+    box-shadow: 
+        0 20px 40px rgba(0,196,179,0.1),
+        0 0 0 1px var(--border);
+    backdrop-filter: blur(10px);
+}
+
+/* Header Stilleri - Beyaz Tonları */
+.modern-promotion-header {
+    background: linear-gradient(135deg, 
+        #ffffff 0%, 
+        #f8fafc 50%, 
+        #f1f5f9 100%);
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 24px 28px;
+    position: relative;
+    overflow: hidden;
+}
+
+.modern-promotion-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.5) 50%, transparent 70%);
+    animation: headerShimmer 4s ease-in-out infinite;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: relative;
+    z-index: 2;
+}
+
+.modern-promotion-header .header-icon {
+    width: 48px;
+    height: 48px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: #64748b;
+    backdrop-filter: blur(10px);
+}
+
+.modern-promotion-header .header-text h5 {
+    color: #64748b;
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.modern-promotion-header .header-subtitle {
+    color: #94a3b8;
+    font-size: 0.875rem;
+    font-weight: 400;
+}
+
+/* Carousel Ana Container */
+.modern-promotion-carousel {
+    min-height: 400px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Slide Stilleri - Beyaz Background */
+.modern-promotion-slide {
+    min-height: 400px;
+    position: relative;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+}
+
+.slide-pattern {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(circle at 20% 30%, rgba(0, 196, 179, 0.03) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(0, 196, 179, 0.05) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.slide-content {
+    flex: 1;
+    padding: 32px 24px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    z-index: 2;
+}
+
+/* Modern Avatar */
+.modern-avatar-container {
+    position: relative;
+    margin-bottom: 24px;
+}
+
+.modern-avatar {
+    width: 88px;
+    height: 88px;
+    position: relative;
+    margin: 0 auto;
+}
+
+.avatar-letter {
+    width: 88px;
+    height: 88px;
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    border: 3px solid #ffffff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #64748b;
+    text-shadow: none;
+    box-shadow: 
+        0 8px 24px rgba(0, 0, 0, 0.06),
+        0 0 0 1px rgba(148, 163, 184, 0.1);
+    position: relative;
+    z-index: 2;
+}
+
+.avatar-ring {
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    border: 2px solid transparent;
+    border-radius: 50%;
+    background: linear-gradient(45deg, var(--primary), hsl(174, 100%, 25%), var(--primary));
+    z-index: 1;
+    animation: ringRotate 3s linear infinite;
+}
+
+.success-icon {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, var(--green-500) 0%, var(--green-600) 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+    animation: successPulse 2s ease-in-out infinite;
+}
+
+/* Employee Info */
+.employee-info {
+    margin-bottom: 28px;
+}
+
+.employee-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--foreground);
+    margin-bottom: 8px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.department-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(0, 196, 179, 0.1);
+    color: hsl(174, 100%, 25%);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid rgba(0, 196, 179, 0.2);
+}
+
+/* Position Flow */
+.position-flow {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    width: 100%;
+    max-width: 320px;
+}
+
+.position-card {
+    flex: 1;
+    background: var(--card);
+    border-radius: 16px;
+    padding: 16px 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    border: 1px solid var(--border);
+    transition: all 0.3s ease;
+}
+
+.from-position {
+    border-left: 4px solid var(--gray-400);
+}
+
+.to-position {
+    border-left: 4px solid var(--primary);
+    transform: scale(1.05);
+    box-shadow: 0 8px 24px rgba(0, 196, 179, 0.15);
+}
+
+.position-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--muted-foreground);
+    margin-bottom: 4px;
+    letter-spacing: 0.5px;
+}
+
+.position-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--foreground);
+    line-height: 1.3;
+}
+
+.flow-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0 8px;
+}
+
+.arrow-line {
+    width: 24px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--gray-400) 0%, var(--primary) 100%);
+    border-radius: 1px;
+}
+
+.arrow-head {
+    font-size: 16px;
+    color: var(--primary);
+    margin-top: -2px;
+    animation: arrowBounce 2s ease-in-out infinite;
+}
+
+/* Promotion Celebration */
+.promotion-celebration {
+    margin-bottom: 16px;
+}
+
+.celebration-badge {
+    background: linear-gradient(135deg, var(--yellow-500) 0%, var(--yellow-400) 100%);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 25px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    box-shadow: 0 8px 20px rgba(245, 158, 11, 0.3);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    animation: celebrationGlow 2s ease-in-out infinite alternate;
+}
+
+/* Slide Footer */
+.slide-footer {
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(10px);
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    margin-top: auto;
+}
+
+.promotion-date-modern {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted-foreground);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* Carousel Controls - Clean White Design */
+.modern-promotion-carousel .carousel-control-prev,
+.modern-promotion-carousel .carousel-control-next {
+    position: absolute;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid #e2e8f0;
+    opacity: 0.9;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    z-index: 10;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Control Icons - Bootstrap Icons Kullan */
+.modern-promotion-carousel .carousel-control-prev-icon,
+.modern-promotion-carousel .carousel-control-next-icon {
+    display: none;
+}
+
+/* Custom Arrow Icons - HTML <i> tag'lerini kullan */
+
+.modern-promotion-carousel .carousel-control-prev {
+    left: 16px;
+}
+
+.modern-promotion-carousel .carousel-control-next {
+    right: 16px;
+}
+
+.modern-promotion-carousel .carousel-control-prev:hover,
+.modern-promotion-carousel .carousel-control-next:hover {
+    background: #f8fafc;
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    opacity: 1;
+}
+
+.modern-promotion-carousel .carousel-control-prev:hover i,
+.modern-promotion-carousel .carousel-control-next:hover i {
+    color: #475569 !important;
+}
+
+
+
+/* ========================================
+   BIRTHDAY CAROUSEL - MODERN DESIGN
+   ======================================== */
+
+.modern-birthday-carousel {
+    min-height: 400px;
+    position: relative;
+    overflow: hidden;
+}
+
+.modern-birthday-slide {
+    min-height: 400px;
+    position: relative;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+}
+
+.birthday-date-modern {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    color: #64748b;
+    margin: 12px 0;
+}
+
+.birthday-status {
+    margin-top: 16px;
+}
+
+.birthday-today-status {
+    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%) !important;
+    color: #64748b !important;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 25px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 16px rgba(148, 163, 184, 0.15);
+}
+
+.birthday-upcoming-status {
+    background: #f8fafc !important;
+    color: #64748b !important;
+    border: 1px solid #e2e8f0;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+/* Birthday Celebration Badge */
+.birthday-celebration-container {
+    margin: 20px 0;
+    text-align: center;
+}
+
+.birthday-celebration {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    border: 2px solid #cbd5e1;
+    color: #64748b;
+    padding: 12px 24px;
+    border-radius: 25px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 16px rgba(148, 163, 184, 0.15);
+}
+
+/* Birthday Carousel Controls */
+.modern-birthday-carousel .carousel-control-prev,
+.modern-birthday-carousel .carousel-control-next {
+    position: absolute;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid #e2e8f0;
+    opacity: 0.9;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    z-index: 10;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modern-birthday-carousel .carousel-control-prev {
+    left: 16px;
+}
+
+.modern-birthday-carousel .carousel-control-next {
+    right: 16px;
+}
+
+.modern-birthday-carousel .carousel-control-prev:hover,
+.modern-birthday-carousel .carousel-control-next:hover {
+    background: #f8fafc;
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    opacity: 1;
+}
+
+.modern-birthday-carousel .carousel-control-prev:hover i,
+.modern-birthday-carousel .carousel-control-next:hover i {
+    color: #475569 !important;
+}
+
+/* ========================================
+   ANNIVERSARY CAROUSEL - MODERN DESIGN
+   ======================================== */
+
+.modern-anniversary-carousel {
+    min-height: 400px;
+    position: relative;
+    overflow: hidden;
+}
+
+.modern-anniversary-slide {
+    min-height: 400px;
+    position: relative;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+}
+
+.anniversary-department {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    color: #94a3b8;
+    margin: 8px 0;
+}
+
+.anniversary-date-modern {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    color: #64748b;
+    margin: 12px 0;
+}
+
+.anniversary-status {
+    margin-top: 16px;
+}
+
+.anniversary-today-status {
+    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%) !important;
+    color: #64748b !important;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 25px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 16px rgba(148, 163, 184, 0.15);
+}
+
+.anniversary-upcoming-status {
+    background: #f8fafc !important;
+    color: #64748b !important;
+    border: 1px solid #e2e8f0;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.anniversary-year-status {
+    display: block;
+    margin-top: 8px;
+    color: #94a3b8;
+    font-size: 0.75rem;
+}
+
+/* Anniversary Celebration Badge */
+.anniversary-celebration-container {
+    margin: 20px 0;
+    text-align: center;
+}
+
+.anniversary-celebration {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    border: 2px solid #cbd5e1;
+    color: #64748b;
+    padding: 12px 24px;
+    border-radius: 25px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 16px rgba(148, 163, 184, 0.15);
+}
+
+/* Anniversary Carousel Controls */
+.modern-anniversary-carousel .carousel-control-prev,
+.modern-anniversary-carousel .carousel-control-next {
+    position: absolute;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid #e2e8f0;
+    opacity: 0.9;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    z-index: 10;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modern-anniversary-carousel .carousel-control-prev {
+    left: 16px;
+}
+
+.modern-anniversary-carousel .carousel-control-next {
+    right: 16px;
+}
+
+.modern-anniversary-carousel .carousel-control-prev:hover,
+.modern-anniversary-carousel .carousel-control-next:hover {
+    background: #f8fafc;
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    opacity: 1;
+}
+
+.modern-anniversary-carousel .carousel-control-prev:hover i,
+.modern-anniversary-carousel .carousel-control-next:hover i {
+    color: #475569 !important;
+}
+
+/* Responsive Design - All Carousels */
+@media (max-width: 768px) {
+    .modern-birthday-slide,
+    .modern-anniversary-slide {
+        min-height: 350px;
+    }
+    
+    .modern-birthday-carousel .carousel-control-prev,
+    .modern-birthday-carousel .carousel-control-next,
+    .modern-anniversary-carousel .carousel-control-prev,
+    .modern-anniversary-carousel .carousel-control-next {
+        width: 48px;
+        height: 48px;
+    }
+    
+    .modern-birthday-carousel .carousel-control-prev,
+    .modern-anniversary-carousel .carousel-control-prev {
+        left: 8px;
+    }
+    
+    .modern-birthday-carousel .carousel-control-next,
+    .modern-anniversary-carousel .carousel-control-next {
+        right: 8px;
+    }
+}
+
+/* Animations */
+@keyframes headerShimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+@keyframes ringRotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes successPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+@keyframes arrowBounce {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(4px); }
+}
+
+@keyframes celebrationGlow {
+    0% { box-shadow: 0 8px 20px rgba(245, 158, 11, 0.3); }
+    100% { box-shadow: 0 8px 30px rgba(245, 158, 11, 0.5); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .modern-promotion-slide {
+        min-height: 360px;
+    }
+    
+    .slide-content {
+        padding: 24px 16px 16px;
+    }
+    
+    .position-flow {
+        flex-direction: column;
+        gap: 12px;
+        max-width: 240px;
+    }
+    
+    .flow-arrow {
+        transform: rotate(90deg);
+        margin: 4px 0;
+    }
+    
+    .modern-promotion-carousel .carousel-control-prev,
+    .modern-promotion-carousel .carousel-control-next {
+        width: 48px;
+        height: 48px;
+    }
+    
+    .employee-name {
+        font-size: 1.25rem;
+    }
+    
+    .header-content {
+        gap: 12px;
+    }
+    
+    .header-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .modern-promotion-slide {
+        background: var(--card);
+    }
+    
+    .position-card {
+        border: 2px solid var(--foreground);
+    }
+    
+    .employee-name {
+        color: var(--foreground);
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* ========================================
+   MODERN WIDGET TASARIMI - TÜM WIDGET'LAR İÇİN
+   ======================================== */
+
+/* Ana Widget Card */
+.modern-widget-card {
+    border: none;
+    border-radius: 20px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 
+        0 4px 20px rgba(0, 0, 0, 0.03),
+        0 0 0 1px rgba(148, 163, 184, 0.1);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.modern-widget-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.06),
+        0 0 0 1px rgba(148, 163, 184, 0.15);
+}
+
+/* Header Tasarımları - Beyaz/Gri Tonları */
+.modern-birthday-header {
+    background: linear-gradient(135deg, 
+        #ffffff 0%, 
+        #f8fafc 50%, 
+        #f1f5f9 100%);
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 20px 24px;
+    position: relative;
+    overflow: hidden;
+}
+
+.modern-anniversary-header {
+    background: linear-gradient(135deg, 
+        #ffffff 0%, 
+        #f8fafc 50%, 
+        #f1f5f9 100%);
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 20px 24px;
+    position: relative;
+    overflow: hidden;
+}
+
+.modern-birthday-header::before,
+.modern-anniversary-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.5) 50%, transparent 70%);
+    animation: headerShimmer 4s ease-in-out infinite;
+}
+
+/* Header Content */
+.header-content {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    position: relative;
+    z-index: 2;
+}
+
+.header-icon {
+    width: 44px;
+    height: 44px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: #64748b;
+    backdrop-filter: blur(10px);
+}
+
+.header-text h5 {
+    color: #64748b;
+    font-weight: 700;
+    font-size: 1.05rem;
+    margin: 0;
+    text-shadow: none;
+}
+
+.header-subtitle {
+    color: #94a3b8;
+    font-size: 0.8rem;
+    font-weight: 400;
+}
+
+/* Widget Body */
+.modern-widget-body {
+    padding: 24px;
+    background: #ffffff;
+}
+
+/* Widget Items */
+.modern-widget-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border);
+    transition: all 0.3s ease;
+}
+
+.modern-widget-item:last-child {
+    border-bottom: none;
+}
+
+.modern-widget-item:hover {
+    background: #f8fafc;
+    border-radius: 12px;
+    margin: 0 -12px;
+    padding: 16px 12px;
+}
+
+.widget-item-content {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 1;
+}
+
+/* Modern Avatar Small */
+.modern-avatar-small {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+}
+
+.avatar-letter-small {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #64748b;
+    text-shadow: none;
+    box-shadow: 
+        0 4px 16px rgba(0, 0, 0, 0.04),
+        0 0 0 1px rgba(148, 163, 184, 0.1);
+    position: relative;
+    z-index: 2;
+}
+
+/* Anniversary Avatar - Aynı Beyaz Ton */
+.anniversary-avatar .avatar-letter-small {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    color: #64748b;
+    box-shadow: 
+        0 4px 16px rgba(0, 0, 0, 0.04),
+        0 0 0 1px rgba(148, 163, 184, 0.1);
+}
+
+/* Decorations */
+.birthday-decoration,
+.anniversary-decoration {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 24px;
+    height: 24px;
+    background: var(--card);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    animation: decorationBounce 2s ease-in-out infinite;
+}
+
+/* Widget Info */
+.widget-info {
+    flex: 1;
+}
+
+.widget-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 4px;
+    line-height: 1.3;
+}
+
+.widget-meta {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    line-height: 1.2;
+}
+
+/* Widget Badge */
+.widget-badge {
+    flex-shrink: 0;
+}
+
+/* Badge Styles - Açık Gri Tonları */
+.birthday-today {
+    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%) !important;
+    color: #64748b;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    box-shadow: 0 2px 8px rgba(148, 163, 184, 0.1);
+}
+
+.birthday-upcoming {
+    background: #f8fafc !important;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+    padding: 6px 10px;
+    border-radius: 16px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.anniversary-today {
+    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%) !important;
+    color: #64748b;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    box-shadow: 0 2px 8px rgba(148, 163, 184, 0.1);
+}
+
+.anniversary-upcoming {
+    background: #f8fafc !important;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+    padding: 6px 10px;
+    border-radius: 16px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.anniversary-badge-group {
+    text-align: right;
+}
+
+.anniversary-year {
+    display: block;
+    margin-top: 4px;
+    color: #94a3b8;
+    font-size: 0.7rem;
+}
+
+/* Empty State */
+.widget-empty-state {
+    text-align: center;
+    padding: 32px 16px;
+    color: #94a3b8;
+}
+
+.empty-icon {
+    font-size: 3rem;
+    margin-bottom: 12px;
+    opacity: 0.6;
+}
+
+.empty-text {
+    font-size: 0.9rem;
+    margin: 0;
+    color: #94a3b8;
+}
+
+/* Widget Animations */
+@keyframes decorationBounce {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    50% { transform: scale(1.05) rotate(3deg); }
+}
+
+/* Responsive Widget Design */
+@media (max-width: 768px) {
+    .modern-widget-body {
+        padding: 16px;
+    }
+    
+    .modern-widget-item {
+        padding: 12px 0;
+    }
+    
+    .widget-item-content {
+        gap: 12px;
+    }
+    
+    .modern-avatar-small {
+        width: 42px;
+        height: 42px;
+    }
+    
+    .avatar-letter-small {
+        width: 42px;
+        height: 42px;
+        font-size: 1rem;
+    }
+    
+    .widget-name {
+        font-size: 0.9rem;
+    }
+    
+    .widget-meta {
+        font-size: 0.75rem;
+    }
+    
+    .header-content {
+        gap: 12px;
+    }
+    
+    .header-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+    }
+}
+
+/* Light Mode Always - Beyaz Tonlar */
+@media (prefers-color-scheme: dark) {
+    .modern-widget-card {
+        background: #ffffff;
+        box-shadow: 
+            0 4px 20px rgba(0, 0, 0, 0.03),
+            0 0 0 1px rgba(148, 163, 184, 0.1);
+    }
+    
+    .modern-widget-body {
+        background: #ffffff;
+    }
+    
+    .modern-birthday-header,
+    .modern-anniversary-header,
+    .modern-promotion-header {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .header-icon {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        color: #64748b;
+    }
+    
+    .header-text h5 {
+        color: #64748b;
+    }
+    
+    .header-subtitle {
+        color: #94a3b8;
+    }
+    
+    .widget-name {
+        color: #64748b;
+    }
+    
+    .widget-meta {
+        color: #94a3b8;
+    }
+    
+    .modern-widget-item:hover {
+        background: #f8fafc;
+    }
+    
+    .avatar-letter-small {
+        background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+        color: #64748b;
+    }
+    
+    .modern-promotion-slide,
+    .modern-birthday-slide,
+    .modern-anniversary-slide {
+        background: #ffffff;
+    }
+    
+    .birthday-date-modern,
+    .anniversary-date-modern,
+    .anniversary-department {
+        color: #64748b;
+    }
+    
+    .birthday-today-status,
+    .anniversary-today-status {
+        background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%) !important;
+        color: #64748b !important;
+    }
+    
+    .birthday-upcoming-status,
+    .anniversary-upcoming-status {
+        background: #f8fafc !important;
+        color: #64748b !important;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .birthday-celebration,
+    .anniversary-celebration {
+        background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+        border: 2px solid #cbd5e1;
+        color: #64748b;
+    }
+}
+
+/* Günlük Menü Widget CSS - Diğer widget'lerle aynı stil */
+.modern-menu-header {
+    background: linear-gradient(135deg, #00c4b3 0%, #008f80 100%);
+    color: white;
+    border: none;
+    border-radius: 1rem 1rem 0 0;
+    padding: 1rem 1.5rem;
+}
+
+.modern-menu-carousel {
+    overflow: hidden;
+}
+
+.modern-menu-slide {
+    position: relative;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    min-height: 380px;
+    padding: 2rem 1.5rem;
+    border-radius: 0 0 1rem 1rem;
+}
+
+.modern-menu-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #00c4b3 0%, #008f80 100%);
+    margin: 0 auto 1.5rem;
+    position: relative;
+    box-shadow: 0 8px 25px rgba(0, 196, 179, 0.4);
+}
+
+.menu-date-badge {
+    text-align: center;
+    color: white;
+}
+
+.date-day {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.date-month {
+    font-size: 0.75rem;
+    font-weight: 500;
+    opacity: 0.9;
+    margin-top: -2px;
+}
+
+.menu-celebration-container {
+    position: absolute;
+    top: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+}
+
+.menu-celebration {
+    background: linear-gradient(135deg, #00c4b3 0%, #008f80 100%);
+    color: white;
+    border: 2px solid white;
+    padding: 0.4rem 0.8rem;
+    border-radius: 1.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    box-shadow: 0 4px 15px rgba(0, 196, 179, 0.4);
+    animation: celebrate 2s ease-in-out infinite;
+}
+
+.menu-date-modern {
+    color: #64748b;
+    font-size: 0.875rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.menu-items-modern {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-height: 180px;
+    overflow-y: auto;
+}
+
+.menu-item-modern {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 0.6rem 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.menu-item-modern:hover {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: #00c4b3;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 196, 179, 0.15);
+}
+
+.item-emoji {
+    font-size: 1.1rem;
+    margin-right: 0.75rem;
+    width: 20px;
+    text-align: center;
+}
+
+.item-name {
+    color: #374151;
+    font-size: 0.85rem;
+    font-weight: 500;
+    line-height: 1.3;
+    flex: 1;
+}
+
+/* Menu Carousel Controls - Diğer widget'lerle aynı */
+#menuCarousel .carousel-control-prev,
+#menuCarousel .carousel-control-next {
+    width: 40px;
+    height: 40px;
+    background: rgba(0, 196, 179, 0.1);
+    border: 2px solid #00c4b3;
+    border-radius: 50%;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.8;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    z-index: 100;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+#menuCarousel .carousel-control-prev {
+    left: 10px;
+}
+
+#menuCarousel .carousel-control-next {
+    right: 10px;
+}
+
+#menuCarousel .carousel-control-prev:hover,
+#menuCarousel .carousel-control-next:hover,
+#menuCarousel .carousel-control-prev:focus,
+#menuCarousel .carousel-control-next:focus {
+    background: rgba(0, 196, 179, 0.2);
+    opacity: 1;
+    transform: translateY(-50%) scale(1.1);
+    border-color: #00a693;
+}
+
+#menuCarousel .carousel-control-prev i,
+#menuCarousel .carousel-control-next i {
+    color: #00c4b3;
+    font-size: 1.25rem;
+    font-weight: bold;
+}
+
+/* Carousel wrapper için */
+.modern-menu-carousel {
+    position: relative;
+}
+
+/* Carousel items için geçiş süreleri */
+#menuCarousel .carousel-item {
+    transition: transform 0.6s ease-in-out;
+}
+
+/* Touch/swipe desteği artırma */
+#menuCarousel .carousel-inner {
+    overflow: visible;
+}
+
+/* Celebration animation */
+@keyframes celebrate {
+    0%, 100% { transform: translateX(-50%) scale(1); }
+    50% { transform: translateX(-50%) scale(1.05); }
+}
+
+/* Light theme compatibility - diğer widget'lerle aynı */
+@media (prefers-color-scheme: light) {
+    .modern-menu-slide,
+    .modern-birthday-slide,
+    .modern-anniversary-slide {
+        background: #ffffff;
+    }
+    
+    .menu-date-modern,
+    .birthday-date-modern,
+    .anniversary-date-modern {
+        color: #64748b;
+    }
+    
+    .menu-item-modern {
+        background: #f8fafc;
+        border-color: #e2e8f0;
+    }
+    
+    .item-name {
+        color: #374151;
+    }
+}
+
+/* Hızlı Bağlantılar CSS */
+.modern-quick-links-card {
+    border: none;
+    border-radius: 1rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.modern-quick-links-header {
+    background: linear-gradient(135deg, #00c4b3 0%, #008f80 100%);
+    color: white;
+    border: none;
+    padding: 1rem 1.5rem;
+}
+
+.quick-link-item {
+    display: flex;
+    align-items: center;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border: 2px solid #e2e8f0;
+    border-radius: 1rem;
+    padding: 1.25rem;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+    min-height: 120px;
+}
+
+.quick-link-item:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    transition: left 0.5s ease;
+}
+
+.quick-link-item:hover {
+    transform: translateY(-2px);
+    border-color: #00c4b3;
+    box-shadow: 0 8px 25px rgba(0, 196, 179, 0.15);
+    text-decoration: none;
+}
+
+.quick-link-item:hover:before {
+    left: 100%;
+}
+
+.quick-link-item.education {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+}
+
+.quick-link-item.education:hover {
+    border-color: #0284c7;
+    box-shadow: 0 8px 25px rgba(2, 132, 199, 0.15);
+}
+
+.quick-link-item.payroll {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+}
+
+.quick-link-item.payroll:hover {
+    border-color: #16a34a;
+    box-shadow: 0 8px 25px rgba(22, 163, 74, 0.15);
+}
+
+.quick-link-icon {
+    flex-shrink: 0;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    font-size: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.education .quick-link-icon {
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    color: white;
+}
+
+.payroll .quick-link-icon {
+    background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+    color: white;
+}
+
+.quick-link-item:hover .quick-link-icon {
+    transform: scale(1.1);
+}
+
+.quick-link-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.quick-link-title {
+    color: #1e293b;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 0.25rem 0;
+    line-height: 1.2;
+}
+
+.quick-link-desc {
+    color: #64748b;
+    font-size: 0.875rem;
+    margin: 0 0 0.5rem 0;
+    line-height: 1.3;
+}
+
+.quick-link-url {
+    color: #94a3b8;
+    font-size: 0.75rem;
+    font-family: 'Courier New', monospace;
+    background: rgba(148, 163, 184, 0.1);
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.375rem;
+    display: inline-block;
+}
+
+.quick-link-arrow {
+    flex-shrink: 0;
+    font-size: 1.25rem;
+    color: #94a3b8;
+    transition: all 0.3s ease;
+    margin-left: 0.75rem;
+}
+
+.quick-link-item:hover .quick-link-arrow {
+    color: #00c4b3;
+    transform: translateX(3px) translateY(-3px);
+}
+
+.education:hover .quick-link-arrow {
+    color: #0284c7;
+}
+
+.payroll:hover .quick-link-arrow {
+    color: #16a34a;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .quick-link-item {
+        min-height: 100px;
+        padding: 1rem;
+    }
+    
+    .quick-link-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.25rem;
+        margin-right: 0.75rem;
+    }
+    
+    .quick-link-title {
+        font-size: 1rem;
+    }
+    
+    .quick-link-desc {
+        font-size: 0.8rem;
+    }
+}
+
+/* Light theme için genel uyumluluk */
+@media (prefers-color-scheme: light) {
+    .quick-link-item {
+        background: #ffffff;
+        border-color: #e2e8f0;
+    }
+    
+    .quick-link-item.education {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    }
+    
+    .quick-link-item.payroll {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    }
+    
+    .quick-link-title {
+        color: #1e293b;
+    }
+    
+    .quick-link-desc {
+        color: #64748b;
+    }
+}
+
+/* Online Kullanıcılar Widget CSS */
+.modern-online-header {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    color: white;
+    border: none;
+    border-radius: 1rem 1rem 0 0;
+    padding: 1rem 1.5rem;
+}
+
+.online-count-badge {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.875rem;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.online-users-container {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.online-users-list {
+    padding: 0.5rem;
+}
+
+.online-user-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-radius: 0.75rem;
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.online-user-item:hover {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.online-user-avatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.75rem;
+    margin-right: 0.75rem;
+    position: relative;
+}
+
+.online-user-avatar:after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 12px;
+    height: 12px;
+    background: #10b981;
+    border: 2px solid white;
+    border-radius: 50%;
+    animation: pulse-online 2s infinite;
+}
+
+.online-user-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.online-user-name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #1e293b;
+    line-height: 1.2;
+    margin: 0;
+}
+
+.online-user-department {
+    font-size: 0.75rem;
+    color: #64748b;
+    line-height: 1;
+    margin: 0;
+    margin-top: 0.25rem;
+}
+
+.online-user-time {
+    font-size: 0.7rem;
+    color: #94a3b8;
+    font-weight: 500;
+    text-align: right;
+    line-height: 1;
+}
+
+.online-status-indicator {
+    width: 8px;
+    height: 8px;
+    background: #10b981;
+    border-radius: 50%;
+    margin-left: 0.5rem;
+    animation: pulse-online 2s infinite;
+}
+
+/* Online users scroll bar */
+.online-users-container::-webkit-scrollbar {
+    width: 4px;
+}
+
+.online-users-container::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+.online-users-container::-webkit-scrollbar-thumb {
+    background: #8b5cf6;
+    border-radius: 2px;
+}
+
+.online-users-container::-webkit-scrollbar-thumb:hover {
+    background: #7c3aed;
+}
+
+/* Pulse animation for online indicator */
+@keyframes pulse-online {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.7;
+        transform: scale(1.1);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .online-user-item {
+        padding: 0.5rem;
+    }
+    
+    .online-user-avatar {
+        width: 30px;
+        height: 30px;
+        font-size: 0.7rem;
+    }
+    
+    .online-user-name {
+        font-size: 0.8rem;
+    }
+    
+    .online-user-department {
+        font-size: 0.7rem;
+    }
+}
+
+/* Light theme compatibility */
+@media (prefers-color-scheme: light) {
+    .online-user-item {
+        background: #ffffff;
+        border-color: #e2e8f0;
+    }
+    
+    .online-user-item:hover {
+        background: #f8fafc;
+    }
+    
+    .online-user-name {
+        color: #1e293b;
+    }
+    
+    .online-user-department {
+        color: #64748b;
+    }
+}
+</style>
+
 <script>
-// Kullanıcıları yükle mesaj modalı için
+// Dashboard başlatma ve carousel kontrolleri
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Dashboard DOMContentLoaded started');
+    
+    // Terfi Carousel'ını başlat
+    const promotionCarousel = document.getElementById('promotionCarousel');
+    if (promotionCarousel) {
+        console.log('Promotion carousel found, initializing...');
+        
+        // Bootstrap 5 carousel instance oluştur
+        const carousel = new bootstrap.Carousel(promotionCarousel, {
+            interval: 6000,
+            ride: 'carousel',
+            wrap: true,
+            touch: true
+        });
+        
+        console.log('Promotion carousel initialized:', carousel);
+        
+        // Carousel eventlerini dinle
+        promotionCarousel.addEventListener('slide.bs.carousel', function(e) {
+            console.log('Carousel sliding to:', e.to);
+        });
+        
+        promotionCarousel.addEventListener('slid.bs.carousel', function(e) {
+            console.log('Carousel slid to:', e.to);
+        });
+        
+        // Bootstrap'ın otomatik binding'ini kullan - manuel event ekleme
+        console.log('Carousel will use Bootstrap default controls');
+        
+    } else {
+        console.log('Promotion carousel NOT found!');
+    }
+    
+    // Doğum Günü Carousel'ını başlat
+    const birthdayCarousel = document.getElementById('birthdayCarousel');
+    if (birthdayCarousel) {
+        console.log('Birthday carousel found, initializing...');
+        
+        const birthdayCarouselInstance = new bootstrap.Carousel(birthdayCarousel, {
+            interval: 5000,
+            ride: 'carousel',
+            wrap: true,
+            touch: true
+        });
+        
+        console.log('Birthday carousel initialized:', birthdayCarouselInstance);
+    } else {
+        console.log('Birthday carousel NOT found!');
+    }
+    
+    // İş Yıl Dönümü Carousel'ını başlat
+    const anniversaryCarousel = document.getElementById('anniversaryCarousel');
+    if (anniversaryCarousel) {
+        console.log('Anniversary carousel found, initializing...');
+        
+        const anniversaryCarouselInstance = new bootstrap.Carousel(anniversaryCarousel, {
+            interval: 6000,
+            ride: 'carousel',
+            wrap: true,
+            touch: true
+        });
+        
+        console.log('Anniversary carousel initialized:', anniversaryCarouselInstance);
+    } else {
+        console.log('Anniversary carousel NOT found!');
+    }
+    
+    // Günlük Menü Carousel'ını başlat
+    const menuCarousel = document.getElementById('menuCarousel');
+    if (menuCarousel) {
+        console.log('Menu carousel found, initializing...');
+        
+        // Carousel'ı biraz gecikme ile başlat (DOM'un tamamen hazır olması için)
+        setTimeout(() => {
+            const menuCarouselInstance = new bootstrap.Carousel(menuCarousel, {
+                interval: 7000,
+                ride: 'carousel',
+                wrap: true,
+                touch: true,
+                keyboard: true
+            });
+            
+            console.log('Menu carousel initialized:', menuCarouselInstance);
+            
+            // Menü sayısını kontrol et
+            const menuItems = menuCarousel.querySelectorAll('.carousel-item');
+            const itemCount = menuItems.length;
+            console.log('Menu carousel item count:', itemCount);
+            
+            // Manuel kontrol butonları için event listener'lar ekle
+            const prevBtn = menuCarousel.querySelector('.carousel-control-prev');
+            const nextBtn = menuCarousel.querySelector('.carousel-control-next');
+            
+            // Eğer sadece bir menü varsa kontrol butonlarını gizle
+            if (itemCount <= 1) {
+                if (prevBtn) prevBtn.style.display = 'none';
+                if (nextBtn) nextBtn.style.display = 'none';
+                console.log('Menu carousel: Controls hidden (only one item)');
+            } else {
+                if (prevBtn) {
+                    prevBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('Menu carousel: Previous button clicked');
+                        menuCarouselInstance.prev();
+                    });
+                }
+                
+                if (nextBtn) {
+                    nextBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('Menu carousel: Next button clicked');
+                        menuCarouselInstance.next();
+                    });
+                }
+            }
+            
+            // Debug için carousel events'leri dinle
+            menuCarousel.addEventListener('slide.bs.carousel', function(e) {
+                console.log('Menu carousel sliding from:', e.from, 'to:', e.to);
+            });
+            
+            menuCarousel.addEventListener('slid.bs.carousel', function(e) {
+                console.log('Menu carousel slid to:', e.to);
+            });
+            
+        }, 100); // 100ms gecikme
+        
+    } else {
+        console.log('Menu carousel NOT found!');
+    }
+    
+    // Online kullanıcıları yükle (sadece yetkili kullanıcılar için)
+    function loadOnlineUsers() {
+        fetch('/api/online-users')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateOnlineUsersDisplay(data.online_users, data.count, data.timestamp);
+                } else {
+                    console.error('Online users load error:', data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Online users fetch error:', error);
+            });
+    }
+    
+    function updateOnlineUsersDisplay(users, count, timestamp) {
+        const countBadge = document.getElementById('onlineCount');
+        const emptyDiv = document.getElementById('onlineUsersEmpty');
+        const listDiv = document.getElementById('onlineUsersList');
+        
+        // Sayıyı güncelle
+        if (countBadge) {
+            countBadge.textContent = count;
+        }
+        
+        if (count === 0) {
+            // Hiç online kullanıcı yok
+            emptyDiv.style.display = 'block';
+            listDiv.style.display = 'none';
+        } else {
+            // Online kullanıcıları göster
+            emptyDiv.style.display = 'none';
+            listDiv.style.display = 'block';
+            
+            let html = '';
+            users.forEach(user => {
+                const initials = (user.first_name[0] + user.last_name[0]).toUpperCase();
+                const timeDiff = getTimeDifference(user.last_activity);
+                
+                html += `
+                    <div class="online-user-item">
+                        <div class="online-user-avatar">
+                            ${initials}
+                        </div>
+                        <div class="online-user-info">
+                            <div class="online-user-name">${user.first_name} ${user.last_name}</div>
+                            <div class="online-user-department">${user.department_name || 'Bilinmiyor'}</div>
+                        </div>
+                        <div class="online-user-time">
+                            ${timeDiff}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            listDiv.innerHTML = html;
+        }
+    }
+    
+    function getTimeDifference(lastActivity) {
+        if (!lastActivity) return 'Şimdi';
+        
+        const now = new Date();
+        const activity = new Date(lastActivity);
+        const diffMinutes = Math.floor((now - activity) / (1000 * 60));
+        
+        if (diffMinutes < 1) return 'Şimdi';
+        if (diffMinutes === 1) return '1 dk önce';
+        if (diffMinutes < 60) return `${diffMinutes} dk önce`;
+        
+        const diffHours = Math.floor(diffMinutes / 60);
+        if (diffHours === 1) return '1 saat önce';
+        return `${diffHours} saat önce`;
+    }
+    
+    // Online users sistemi için kontrol değişkeni
+    const shouldLoadOnlineUsers = {% if session.is_admin or session.role_name == 'İK Yöneticisi' %}true{% else %}false{% endif %};
+    
+    // Eğer yetkili kullanıcıysa online users'ı başlat
+    if (shouldLoadOnlineUsers && typeof loadOnlineUsers === 'function') {
+        loadOnlineUsers();
+        setInterval(loadOnlineUsers, 30000); // Her 30 saniyede bir güncelle
+    }
+    
+    // Kullanıcıları yükle mesaj modalı için
     const messageModal = document.getElementById('newMessageModal');
     if (messageModal) {
         messageModal.addEventListener('show.bs.modal', function() {
@@ -212,5 +2542,32 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// Debug: Carousel'ın durumunu kontrol et
+window.checkCarousel = function() {
+    const carousel = document.getElementById('promotionCarousel');
+    if (carousel) {
+        console.log('Carousel element:', carousel);
+        console.log('Carousel classes:', carousel.className);
+        console.log('Carousel children:', carousel.children);
+        
+        const inner = carousel.querySelector('.carousel-inner');
+        if (inner) {
+            console.log('Carousel inner found, children:', inner.children.length);
+            const items = inner.querySelectorAll('.carousel-item');
+            console.log('Carousel items:', items.length);
+            items.forEach((item, index) => {
+                console.log(`Item ${index}:`, item.className);
+            });
+        }
+        
+        const bsCarousel = bootstrap.Carousel.getInstance(carousel);
+        console.log('Bootstrap carousel instance:', bsCarousel);
+    } else {
+        console.log('Carousel element not found!');
+    }
+};
+
+console.log('Dashboard scripts loaded. Call window.checkCarousel() to debug.');
 </script>
 {% endblock %} 

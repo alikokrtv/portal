@@ -1,0 +1,368 @@
+{% extends "base.html" %}
+
+{% block title %}Rezervasyon Onayı{% endblock %}
+{% block page_title %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+    }
+    
+    .navbar, .main-content {
+        display: none;
+    }
+    
+    .confirmation-container {
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 20px;
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .confirmation-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        overflow: hidden;
+        width: 100%;
+        max-width: 600px;
+    }
+    
+    .confirmation-header {
+        background: linear-gradient(135deg, #00b4a6, #007991);
+        color: white;
+        text-align: center;
+        padding: 40px 30px;
+    }
+    
+    .confirmation-header h1 {
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin: 0 0 10px 0;
+    }
+    
+    .confirmation-header p {
+        font-size: 1.1rem;
+        margin: 0;
+        opacity: 0.9;
+    }
+    
+    .confirmation-body {
+        padding: 40px 30px;
+    }
+    
+    .reservation-details {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 30px;
+        border-left: 5px solid #00b4a6;
+    }
+    
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .detail-row:last-child {
+        border-bottom: none;
+    }
+    
+    .detail-label {
+        font-weight: 600;
+        color: #495057;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .detail-value {
+        font-weight: 500;
+        color: #333;
+        text-align: right;
+    }
+    
+    .confirmation-code {
+        background: linear-gradient(135deg, #4caf50, #2e7d32);
+        color: white;
+        padding: 20px;
+        border-radius: 15px;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    
+    .confirmation-code h3 {
+        margin: 0 0 10px 0;
+        font-size: 1.2rem;
+    }
+    
+    .code-value {
+        font-size: 2rem;
+        font-weight: 700;
+        font-family: 'Courier New', monospace;
+        letter-spacing: 3px;
+        background: rgba(255,255,255,0.2);
+        padding: 15px 20px;
+        border-radius: 10px;
+        margin: 0;
+    }
+    
+    .contact-info {
+        background: #fff3e0;
+        border-radius: 15px;
+        padding: 20px;
+        border-left: 5px solid #ff9800;
+        margin-bottom: 30px;
+    }
+    
+    .contact-info h4 {
+        color: #f57c00;
+        margin: 0 0 15px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .contact-info p {
+        margin: 5px 0;
+        color: #666;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .btn {
+        padding: 12px 25px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #00b4a6, #007991);
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #007991, #005662);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,180,166,0.3);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .btn-outline {
+        background: white;
+        color: #00b4a6;
+        border: 2px solid #00b4a6;
+    }
+    
+    .btn-outline:hover {
+        background: #00b4a6;
+        color: white;
+        text-decoration: none;
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .status-approved {
+        background: #e8f5e8;
+        color: #2e7d32;
+    }
+    
+    .status-pending {
+        background: #fff3e0;
+        color: #f57c00;
+    }
+    
+    .status-cancelled {
+        background: #ffebee;
+        color: #d32f2f;
+    }
+    
+    @media (max-width: 768px) {
+        .confirmation-container {
+            margin: 20px auto;
+            padding: 10px;
+        }
+        
+        .confirmation-header {
+            padding: 30px 20px;
+        }
+        
+        .confirmation-header h1 {
+            font-size: 1.8rem;
+        }
+        
+        .confirmation-body {
+            padding: 30px 20px;
+        }
+        
+        .detail-row {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 5px;
+        }
+        
+        .detail-value {
+            text-align: left;
+        }
+        
+        .code-value {
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="confirmation-container">
+    <div class="confirmation-card">
+        <div class="confirmation-header">
+            <h1>✅ Rezervasyon Onaylandı!</h1>
+            <p>Toplantı odası rezervasyonunuz başarıyla oluşturulmuştur</p>
+        </div>
+        
+        <div class="confirmation-body">
+            <div class="confirmation-code">
+                <h3>🔢 Rezervasyon Kodunuz</h3>
+                <div class="code-value">{{ reservation.confirmation_code }}</div>
+            </div>
+            
+            <div class="reservation-details">
+                <div class="detail-row">
+                    <div class="detail-label">
+                        <span>📍</span> Toplantı Odası
+                    </div>
+                    <div class="detail-value">{{ reservation.room_name }}</div>
+                </div>
+                
+                <div class="detail-row">
+                    <div class="detail-label">
+                        <span>📅</span> Tarih
+                    </div>
+                    <div class="detail-value">{{ reservation.reservation_date.strftime('%d/%m/%Y') }}</div>
+                </div>
+                
+                <div class="detail-row">
+                    <div class="detail-label">
+                        <span>⏰</span> Saat Aralığı
+                    </div>
+                    <div class="detail-value">{{ reservation.start_time.strftime('%H:%M') }} - {{ reservation.end_time.strftime('%H:%M') }}</div>
+                </div>
+                
+                <div class="detail-row">
+                    <div class="detail-label">
+                        <span>👤</span> Rezerve Eden
+                    </div>
+                    <div class="detail-value">{{ reservation.requester_name }}</div>
+                </div>
+                
+                <div class="detail-row">
+                    <div class="detail-label">
+                        <span>📧</span> E-mail
+                    </div>
+                    <div class="detail-value">{{ reservation.requester_email }}</div>
+                </div>
+                
+                <div class="detail-row">
+                    <div class="detail-label">
+                        <span>👥</span> Katılımcı Sayısı
+                    </div>
+                    <div class="detail-value">{{ reservation.attendees_count }} kişi</div>
+                </div>
+                
+                {% if reservation.purpose %}
+                <div class="detail-row">
+                    <div class="detail-label">
+                        <span>📝</span> Toplantı Amacı
+                    </div>
+                    <div class="detail-value">{{ reservation.purpose }}</div>
+                </div>
+                {% endif %}
+                
+                <div class="detail-row">
+                    <div class="detail-label">
+                        <span>📊</span> Durum
+                    </div>
+                    <div class="detail-value">
+                        {% if reservation.status == 'approved' %}
+                            <span class="status-badge status-approved">Onaylandı</span>
+                        {% elif reservation.status == 'pending' %}
+                            <span class="status-badge status-pending">Beklemede</span>
+                        {% elif reservation.status == 'cancelled' %}
+                            <span class="status-badge status-cancelled">İptal Edildi</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="detail-row">
+                    <div class="detail-label">
+                        <span>📅</span> Oluşturulma Tarihi
+                    </div>
+                    <div class="detail-value">{{ reservation.created_at.strftime('%d/%m/%Y %H:%M') }}</div>
+                </div>
+            </div>
+            
+            <div class="contact-info">
+                <h4><span>📞</span> İletişim Bilgileri</h4>
+                <p>Herhangi bir sorunuz olursa bizimle iletişime geçebilirsiniz:</p>
+                <p><strong>📧 Email:</strong> portal@pluskitchen.com.tr</p>
+                <p><strong>📱 Telefon:</strong> 0212 XXX XX XX</p>
+                <p><strong>🌐 Portal:</strong> https://portal.pluskitchen.com.tr</p>
+            </div>
+            
+            <div class="action-buttons">
+                <a href="/meeting-rooms" class="btn btn-primary">
+                    <span>🏢</span> Yeni Rezervasyon
+                </a>
+                <button onclick="window.print()" class="btn btn-outline">
+                    <span>🖨️</span> Yazdır
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-print functionality (optional)
+// window.onload = function() {
+//     setTimeout(() => {
+//         window.print();
+//     }, 1000);
+// };
+</script>
+{% endblock %} 

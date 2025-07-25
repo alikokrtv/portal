@@ -9,6 +9,11 @@
         <h2 class="h4 mb-0">Açık Pozisyonlar</h2>
         <p class="text-muted mb-0">Şirketimizde açık olan pozisyonları görüntüleyin</p>
     </div>
+    {% if session.is_admin %}
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newJobModal">
+        <i class="bi bi-plus-circle me-2"></i>Yeni İş İlanı
+    </button>
+    {% endif %}
 </div>
 
 <div class="row">
@@ -27,7 +32,7 @@
             <div class="card-body">
                 <h5 class="card-title">{{ job.title }}</h5>
                 <p class="card-text text-muted mb-2">
-                    <i class="bi bi-building me-1"></i>{{ job.department }}
+                    <i class="bi bi-building me-1"></i>{{ job.department_name }}
                 </p>
                 <p class="card-text text-muted mb-3">
                     <i class="bi bi-geo-alt me-1"></i>{{ job.location }}
@@ -35,25 +40,147 @@
                 <p class="card-text">{{ job.description }}</p>
             </div>
             <div class="card-footer bg-transparent">
-                <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex justify-content-between align-items-center mb-2">
                     <small class="text-muted">
                         <i class="bi bi-calendar me-1"></i>
-                        {{ job.posted_date }}
+                        {{ job.posted_date.strftime('%d/%m/%Y') if job.posted_date else 'N/A' }}
                     </small>
                     <div class="btn-group btn-group-sm">
-                        <button class="btn btn-outline-primary btn-sm" title="Detaylar">
+                        <button class="btn btn-outline-primary btn-sm" title="Detaylar" onclick="showJobDetails({{ job.id }})">
                             <i class="bi bi-eye"></i>
                         </button>
-                        <button class="btn btn-primary btn-sm" title="Başvur">
+                        {% if session.is_admin %}
+                        <a href="{{ url_for('edit_job', id=job.id) }}" class="btn btn-outline-warning btn-sm" title="Düzenle">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <button class="btn btn-outline-danger btn-sm" title="Sil" onclick="deleteJob({{ job.id }})">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                        {% else %}
+                        <button class="btn btn-primary btn-sm" title="Başvur" onclick="applyJob({{ job.id }})">
                             <i class="bi bi-send"></i>
                         </button>
+                        {% endif %}
                     </div>
+                </div>
+                
+                <!-- Sosyal Medya Paylaşım Butonları -->
+                <div class="d-flex justify-content-center gap-2 border-top pt-2">
+                    {% set share_url = job.external_link if job.external_link else url_for('jobs', _external=True) %}
+                    <button class="btn btn-outline-success btn-sm social-share-btn" 
+                            onclick="shareOnWhatsApp('{{ job.title }}', '{{ job.location }}', '{{ share_url }}')" 
+                            title="WhatsApp'ta Paylaş">
+                        <i class="bi bi-whatsapp"></i>
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm social-share-btn" 
+                            onclick="shareOnLinkedIn('{{ job.title }}', '{{ job.description[:100] }}...', '{{ share_url }}')" 
+                            title="LinkedIn'de Paylaş">
+                        <i class="bi bi-linkedin"></i>
+                    </button>
+                    <button class="btn btn-outline-info btn-sm social-share-btn" 
+                            onclick="shareOnTwitter('{{ job.title }}', '{{ job.location }}', '{{ share_url }}')" 
+                            title="Twitter'da Paylaş">
+                        <i class="bi bi-twitter"></i>
+                    </button>
+                    <button class="btn btn-outline-warning btn-sm social-share-btn" 
+                            onclick="copyJobLink('{{ share_url }}')" 
+                            title="Linki Kopyala">
+                        <i class="bi bi-link-45deg"></i>
+                    </button>
+                    {% if job.external_link %}
+                    <button class="btn btn-outline-info btn-sm social-share-btn" 
+                            onclick="window.open('{{ job.external_link }}', '_blank')" 
+                            title="Orijinal İlana Git">
+                        <i class="bi bi-box-arrow-up-right"></i>
+                    </button>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
     {% endfor %}
 </div>
+
+<!-- Yeni İş İlanı Modal -->
+{% if session.is_admin %}
+<div class="modal fade" id="newJobModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-plus-circle me-2"></i>
+                    Yeni İş İlanı
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('create_job') }}" method="POST">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="title" class="form-label">Pozisyon Adı *</label>
+                                <input type="text" class="form-control" id="title" name="title" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="department_id" class="form-label">Departman *</label>
+                                <select class="form-select" id="department_id" name="department_id" required>
+                                    <option value="">Departman Seçin</option>
+                                    {% for dept in departments %}
+                                    <option value="{{ dept.id }}">{{ dept.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="location" class="form-label">Lokasyon *</label>
+                                <input type="text" class="form-control" id="location" name="location" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="job_type" class="form-label">Çalışma Türü *</label>
+                                <select class="form-select" id="job_type" name="job_type" required>
+                                    <option value="">Seçin</option>
+                                    <option value="Tam Zamanlı">Tam Zamanlı</option>
+                                    <option value="Yarı Zamanlı">Yarı Zamanlı</option>
+                                    <option value="Stajyer">Stajyer</option>
+                                    <option value="Uzaktan">Uzaktan</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">İş Tanımı *</label>
+                        <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="requirements" class="form-label">Gereksinimler</label>
+                        <textarea class="form-control" id="requirements" name="requirements" rows="4"></textarea>
+                        <div class="form-text">Aranan nitelikler, deneyim ve becerileri belirtin</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="external_link" class="form-label">Harici İlan Linki</label>
+                        <input type="url" class="form-control" id="external_link" name="external_link" placeholder="https://kariyer.net/is-ilani/...">
+                        <div class="form-text">Kariyer.net, LinkedIn gibi platformlardaki orijinal ilan linki</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-2"></i>
+                        İlan Oluştur
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 <!-- İş İlanı Detay Modal -->
 <div class="modal fade" id="jobDetailModal" tabindex="-1">
@@ -92,6 +219,109 @@
 
 .badge {
     font-size: 0.75rem;
+}
+</style>
+
+<script>
+function deleteJob(jobId) {
+    if (confirm('Bu iş ilanını silmek istediğinizden emin misiniz?')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/jobs/${jobId}/delete`;
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+function showJobDetails(id) {
+    // İş ilanı detayları modal'ı açmak için
+    alert('İş ilanı detayları yakında eklenecek!');
+}
+
+function applyJob(id) {
+    // İş başvurusu yapma fonksiyonu
+    alert('Başvuru özelliği yakında eklenecek!');
+}
+
+// Sosyal medya paylaşım fonksiyonları
+function shareOnWhatsApp(title, location, url) {
+    const text = `🔥 ${title} pozisyonu için açık iş ilanı!\n📍 ${location}\n\nDetaylar: ${url}`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(whatsappUrl, '_blank');
+}
+
+function shareOnLinkedIn(title, description, url) {
+    const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}&summary=${encodeURIComponent(description)}`;
+    window.open(linkedInUrl, '_blank');
+}
+
+function shareOnTwitter(title, location, url) {
+    const text = `🔥 ${title} pozisyonu için açık iş ilanı! 📍 ${location}`;
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+    window.open(twitterUrl, '_blank');
+}
+
+function copyJobLink(url) {
+    navigator.clipboard.writeText(url).then(function() {
+        // Toast mesajı göster
+        showToast('Link kopyalandı!', 'success');
+    }, function(err) {
+        console.error('Link kopyalanamadı: ', err);
+        showToast('Link kopyalanamadı!', 'error');
+    });
+}
+
+function showToast(message, type) {
+    // Bootstrap toast göster
+    const toastHtml = `
+        <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    `;
+    
+    // Toast container oluştur veya mevcut olanı kullan
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+        document.body.appendChild(toastContainer);
+    }
+    
+    // Toast ekle
+    const toastElement = document.createElement('div');
+    toastElement.innerHTML = toastHtml;
+    toastContainer.appendChild(toastElement.firstElementChild);
+    
+    // Toast'u göster
+    const toast = new bootstrap.Toast(toastContainer.lastElementChild);
+    toast.show();
+    
+    // Toast kapandıktan sonra DOM'dan kaldır
+    toastContainer.lastElementChild.addEventListener('hidden.bs.toast', function () {
+        this.remove();
+    });
+}
+</script>
+
+<style>
+.social-share-btn {
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.social-share-btn:hover {
+    transform: scale(1.1);
 }
 </style>
 

@@ -51,10 +51,10 @@
                         </small>
                         {% if session.is_admin %}
                         <div class="btn-group btn-group-sm">
-                            <button class="btn btn-outline-primary btn-sm" title="Düzenle">
+                            <a href="{{ url_for('edit_announcement', id=announcement.id) }}" class="btn btn-outline-warning btn-sm" title="Düzenle">
                                 <i class="bi bi-pencil"></i>
-                            </button>
-                            <button class="btn btn-outline-danger btn-sm" title="Sil">
+                            </a>
+                            <button class="btn btn-outline-danger btn-sm" title="Sil" onclick="deleteAnnouncement({{ announcement.id }})">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </div>
@@ -100,9 +100,72 @@
                         <label for="content" class="form-label">Duyuru İçeriği</label>
                         <textarea class="form-control" id="content" name="content" rows="6" required placeholder="Duyuru içeriğini girin..."></textarea>
                     </div>
+                    
+                    <!-- Hedefleme Sistemi -->
+                    <div class="mb-3">
+                        <label for="target_type" class="form-label">Hedef Kitle</label>
+                        <select class="form-select" id="target_type" name="target_type" onchange="toggleTargetOptions()">
+                            <option value="all">Tüm Kullanıcılar</option>
+                            <option value="department">Belirli Departmanlar</option>
+                            <option value="user">Belirli Kullanıcılar</option>
+                            <option value="role">Belirli Roller</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Departman Seçimi -->
+                    <div class="mb-3" id="department_target" style="display: none;">
+                        <label class="form-label">Departman Seçin</label>
+                        <div class="row">
+                            {% for dept in departments %}
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="target_departments" value="{{ dept.id }}" id="dept_{{ dept.id }}">
+                                    <label class="form-check-label" for="dept_{{ dept.id }}">
+                                        {{ dept.name }}
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Kullanıcı Seçimi -->
+                    <div class="mb-3" id="user_target" style="display: none;">
+                        <label class="form-label">Kullanıcı Seçin</label>
+                        <div class="row">
+                            {% for user in users %}
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="target_users" value="{{ user.id }}" id="user_{{ user.id }}">
+                                    <label class="form-check-label" for="user_{{ user.id }}">
+                                        {{ user.first_name }} {{ user.last_name }}
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Rol Seçimi -->
+                    <div class="mb-3" id="role_target" style="display: none;">
+                        <label class="form-label">Rol Seçin</label>
+                        <div class="row">
+                            {% for role in roles %}
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="target_roles" value="{{ role.id }}" id="role_{{ role.id }}">
+                                    <label class="form-check-label" for="role_{{ role.id }}">
+                                        {{ role.name }}
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
                     <div class="alert alert-info">
                         <i class="bi bi-info-circle me-2"></i>
-                        <strong>Bilgi:</strong> Duyuru oluşturulduktan sonra tüm kullanıcılar görebilecektir.
+                        <strong>Bilgi:</strong> Hedefleme seçeneğine göre duyuru sadece seçilen kullanıcılara görünecektir.
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -119,4 +182,35 @@
         </div>
     </div>
 </div>
+
+<script>
+function deleteAnnouncement(announcementId) {
+    if (confirm('Bu duyuruyu silmek istediğinizden emin misiniz?')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/announcements/${announcementId}/delete`;
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+function toggleTargetOptions() {
+    const targetType = document.getElementById('target_type').value;
+    
+    // Tüm hedefleme seçeneklerini gizle
+    document.getElementById('department_target').style.display = 'none';
+    document.getElementById('user_target').style.display = 'none';
+    document.getElementById('role_target').style.display = 'none';
+    
+    // Seçilen tipe göre göster
+    if (targetType === 'department') {
+        document.getElementById('department_target').style.display = 'block';
+    } else if (targetType === 'user') {
+        document.getElementById('user_target').style.display = 'block';
+    } else if (targetType === 'role') {
+        document.getElementById('role_target').style.display = 'block';
+    }
+}
+</script>
+
 {% endblock %} 

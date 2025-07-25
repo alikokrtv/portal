@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}İş İlanı Düzenle{% endblock %}
+{% block page_title %}İş İlanı Düzenle{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-pencil-square me-2"></i>
+                    İş İlanı Düzenle
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="title" class="form-label">Pozisyon Adı *</label>
+                                <input type="text" class="form-control" id="title" name="title" value="{{ job.title }}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="department_id" class="form-label">Departman *</label>
+                                <select class="form-select" id="department_id" name="department_id" required>
+                                    <option value="">Departman Seçin</option>
+                                    {% for dept in departments %}
+                                    <option value="{{ dept.id }}" {% if job.department_id == dept.id %}selected{% endif %}>
+                                        {{ dept.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="location" class="form-label">Lokasyon *</label>
+                                <input type="text" class="form-control" id="location" name="location" value="{{ job.location }}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="job_type" class="form-label">Çalışma Türü *</label>
+                                <select class="form-select" id="job_type" name="job_type" required>
+                                    <option value="">Seçin</option>
+                                    <option value="Tam Zamanlı" {% if job.job_type == 'Tam Zamanlı' %}selected{% endif %}>Tam Zamanlı</option>
+                                    <option value="Yarı Zamanlı" {% if job.job_type == 'Yarı Zamanlı' %}selected{% endif %}>Yarı Zamanlı</option>
+                                    <option value="Stajyer" {% if job.job_type == 'Stajyer' %}selected{% endif %}>Stajyer</option>
+                                    <option value="Uzaktan" {% if job.job_type == 'Uzaktan' %}selected{% endif %}>Uzaktan</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">İş Tanımı *</label>
+                        <textarea class="form-control" id="description" name="description" rows="4" required>{{ job.description }}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="requirements" class="form-label">Gereksinimler</label>
+                        <textarea class="form-control" id="requirements" name="requirements" rows="3">{{ job.requirements or '' }}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Durum</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="active" {% if job.status == 'active' %}selected{% endif %}>Aktif</option>
+                            <option value="inactive" {% if job.status == 'inactive' %}selected{% endif %}>Pasif</option>
+                        </select>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('jobs') }}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>Geri Dön
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle me-2"></i>Güncelle
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

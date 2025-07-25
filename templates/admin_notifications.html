@@ -1,0 +1,532 @@
+{% extends "base.html" %}
+
+{% block title %}Bildirim Gönder{% endblock %}
+{% block page_title %}Bildirim Gönder{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-broadcast me-2"></i>
+                        Toplu Bildirim Gönder
+                    </h5>
+                    <p class="text-muted mb-0">Personele toplu bildirim gönderin</p>
+                </div>
+                <div class="card-body">
+                    <form id="notificationForm">
+                        <!-- Alıcı Seçimi -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <label class="form-label fw-bold">
+                                    <i class="bi bi-people me-1"></i>
+                                    Alıcılar *
+                                </label>
+                                
+                                <!-- Alıcı Tipi Seçimi -->
+                                <div class="btn-group w-100 mb-3" role="group">
+                                    <input type="radio" class="btn-check" name="recipient_type" id="all_users" value="all" checked>
+                                    <label class="btn btn-outline-primary" for="all_users">
+                                        <i class="bi bi-globe me-1"></i>Herkese
+                                    </label>
+                                    
+                                    <input type="radio" class="btn-check" name="recipient_type" id="departments" value="departments">
+                                    <label class="btn btn-outline-primary" for="departments">
+                                        <i class="bi bi-building me-1"></i>Departmanlara
+                                    </label>
+                                    
+                                    <input type="radio" class="btn-check" name="recipient_type" id="specific_users" value="users">
+                                    <label class="btn btn-outline-primary" for="specific_users">
+                                        <i class="bi bi-person me-1"></i>Belirli Kişilere
+                                    </label>
+                                </div>
+                                
+                                <!-- Departman Seçimi -->
+                                <div id="department_selection" style="display: none;">
+                                    <label class="form-label">Departmanlar</label>
+                                    <select multiple class="form-select" id="selected_departments" size="8">
+                                        {% for dept in departments %}
+                                        <option value="{{ dept.id }}">{{ dept.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <small class="form-text text-muted">
+                                        Ctrl tuşu ile birden fazla departman seçebilirsiniz
+                                    </small>
+                                </div>
+                                
+                                <!-- Kullanıcı Seçimi -->
+                                <div id="user_selection" style="display: none;">
+                                    <label class="form-label">Personel Ara</label>
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text">
+                                            <i class="bi bi-search"></i>
+                                        </span>
+                                        <input type="text" class="form-control" id="user_search" placeholder="İsim veya departman ile ara...">
+                                    </div>
+                                    
+                                    <div class="user-selection-container">
+                                        <div class="row" id="user_list">
+                                            <!-- Kullanıcılar buraya yüklenecek -->
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="selected-users mt-3">
+                                        <label class="form-label">Seçilen Personel</label>
+                                        <div id="selected_users_display" class="border rounded p-2 min-height-50">
+                                            <span class="text-muted">Henüz kimse seçilmedi</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Bildirim İçeriği -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="notification_title" class="form-label fw-bold">
+                                    <i class="bi bi-tag me-1"></i>
+                                    Başlık *
+                                </label>
+                                <input type="text" class="form-control" id="notification_title" required 
+                                       placeholder="Bildirim başlığı">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="notification_priority" class="form-label fw-bold">
+                                    <i class="bi bi-exclamation-triangle me-1"></i>
+                                    Öncelik
+                                </label>
+                                <select class="form-select" id="notification_priority">
+                                    <option value="normal">Normal</option>
+                                    <option value="high">Yüksek</option>
+                                    <option value="urgent">Acil</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <label for="notification_message" class="form-label fw-bold">
+                                    <i class="bi bi-chat-text me-1"></i>
+                                    Mesaj *
+                                </label>
+                                <textarea class="form-control" id="notification_message" rows="5" required
+                                          placeholder="Bildirim mesajını buraya yazın..."></textarea>
+                                <small class="form-text text-muted">
+                                    Değişkenler: {{first_name}}, {{last_name}}, {{department_name}}, {{position}}
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <!-- Gönderim Ayarları -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">
+                                    <i class="bi bi-send me-1"></i>
+                                    Gönderim Kanalları *
+                                </label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="send_in_app" checked>
+                                    <label class="form-check-label" for="send_in_app">
+                                        <i class="bi bi-app-indicator me-1"></i>Site İçi Bildirim
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="send_email">
+                                    <label class="form-check-label" for="send_email">
+                                        <i class="bi bi-envelope me-1"></i>Email
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="send_whatsapp">
+                                    <label class="form-check-label" for="send_whatsapp">
+                                        <i class="bi bi-whatsapp me-1"></i>WhatsApp
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="send_time" class="form-label fw-bold">
+                                    <i class="bi bi-clock me-1"></i>
+                                    Gönderim Zamanı
+                                </label>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="send_timing" id="send_now" value="now" checked>
+                                    <label class="form-check-label" for="send_now">
+                                        Hemen Gönder
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="send_timing" id="send_scheduled" value="scheduled">
+                                    <label class="form-check-label" for="send_scheduled">
+                                        Zamanla
+                                    </label>
+                                </div>
+                                <input type="datetime-local" class="form-control" id="scheduled_time" disabled>
+                            </div>
+                        </div>
+                        
+                        <!-- Önizleme -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="card bg-light">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">
+                                            <i class="bi bi-eye me-1"></i>
+                                            Önizleme
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="notification_preview">
+                                            <div class="notification-preview-item">
+                                                <div class="fw-bold" id="preview_title">Başlık giriniz</div>
+                                                <div class="text-muted" id="preview_message">Mesajınız burada görünecek</div>
+                                                <small class="text-muted">
+                                                    <i class="bi bi-clock me-1"></i>
+                                                    Şimdi
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Gönder Butonu -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+                                        <i class="bi bi-arrow-left me-1"></i>
+                                        Geri
+                                    </a>
+                                    <button type="submit" class="btn btn-primary" id="send_notification_btn">
+                                        <i class="bi bi-send me-1"></i>
+                                        Bildirim Gönder
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.user-selection-container {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    padding: 1rem;
+}
+
+.user-card {
+    border: 1px solid #e9ecef;
+    border-radius: 0.375rem;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.user-card:hover {
+    border-color: #0d6efd;
+    background-color: #f8f9fa;
+}
+
+.user-card.selected {
+    border-color: #0d6efd;
+    background-color: #e7f3ff;
+}
+
+.user-avatar-small {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #0d6efd;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.75rem;
+}
+
+.selected-user-badge {
+    display: inline-flex;
+    align-items: center;
+    background: #e7f3ff;
+    border: 1px solid #0d6efd;
+    border-radius: 1rem;
+    padding: 0.25rem 0.5rem;
+    margin: 0.25rem;
+    font-size: 0.875rem;
+}
+
+.notification-preview-item {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    border-left: 4px solid #0ea5e9;
+}
+
+.min-height-50 {
+    min-height: 50px;
+}
+
+#selected_departments {
+    background-color: #f8f9fa;
+}
+
+#selected_departments option:checked {
+    background-color: #0d6efd;
+    color: white;
+}
+</style>
+
+<script>
+let selectedUsers = new Set();
+let allUsers = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Alıcı tipi değişimi
+    document.querySelectorAll('input[name="recipient_type"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            toggleRecipientSelection(this.value);
+        });
+    });
+    
+    // Gönderim zamanı değişimi
+    document.querySelectorAll('input[name="send_timing"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            document.getElementById('scheduled_time').disabled = this.value !== 'scheduled';
+        });
+    });
+    
+    // Önizleme güncelleme
+    document.getElementById('notification_title').addEventListener('input', updatePreview);
+    document.getElementById('notification_message').addEventListener('input', updatePreview);
+    
+    // Kullanıcı arama
+    document.getElementById('user_search').addEventListener('input', function() {
+        filterUsers(this.value);
+    });
+    
+    // Form gönderimi
+    document.getElementById('notificationForm').addEventListener('submit', sendNotification);
+    
+    // Kullanıcıları yükle
+    loadUsers();
+});
+
+function toggleRecipientSelection(type) {
+    document.getElementById('department_selection').style.display = type === 'departments' ? 'block' : 'none';
+    document.getElementById('user_selection').style.display = type === 'users' ? 'block' : 'none';
+}
+
+function loadUsers() {
+    fetch('/api/users')
+        .then(response => response.json())
+        .then(data => {
+            allUsers = data.users;
+            displayUsers(allUsers);
+        })
+        .catch(error => {
+            console.error('Kullanıcılar yüklenemedi:', error);
+            showToast('Kullanıcılar yüklenemedi', 'error');
+        });
+}
+
+function displayUsers(users) {
+    const container = document.getElementById('user_list');
+    container.innerHTML = '';
+    
+    users.forEach(user => {
+        const userCard = document.createElement('div');
+        userCard.className = 'col-md-6 mb-2';
+        userCard.innerHTML = `
+            <div class="user-card ${selectedUsers.has(user.id) ? 'selected' : ''}" 
+                 onclick="toggleUser(${user.id}, '${user.first_name} ${user.last_name}', '${user.department_name || ''}')">
+                <div class="d-flex align-items-center">
+                    <div class="user-avatar-small me-2">
+                        ${user.first_name[0]}${user.last_name[0]}
+                    </div>
+                    <div>
+                        <div class="fw-semibold">${user.first_name} ${user.last_name}</div>
+                        <small class="text-muted">${user.department_name || 'Departman yok'} • ${user.position || 'Pozisyon yok'}</small>
+                    </div>
+                </div>
+            </div>
+        `;
+        container.appendChild(userCard);
+    });
+}
+
+function filterUsers(query) {
+    if (!query) {
+        displayUsers(allUsers);
+        return;
+    }
+    
+    const filtered = allUsers.filter(user => {
+        const name = `${user.first_name} ${user.last_name}`.toLowerCase();
+        const dept = (user.department_name || '').toLowerCase();
+        const position = (user.position || '').toLowerCase();
+        const searchTerm = query.toLowerCase();
+        
+        return name.includes(searchTerm) || dept.includes(searchTerm) || position.includes(searchTerm);
+    });
+    
+    displayUsers(filtered);
+}
+
+function toggleUser(userId, userName, departmentName) {
+    if (selectedUsers.has(userId)) {
+        selectedUsers.delete(userId);
+    } else {
+        selectedUsers.add(userId);
+    }
+    
+    // Kullanıcı kartını güncelle
+    const userCards = document.querySelectorAll('.user-card');
+    userCards.forEach(card => {
+        if (card.onclick.toString().includes(`toggleUser(${userId}`)) {
+            card.classList.toggle('selected', selectedUsers.has(userId));
+        }
+    });
+    
+    updateSelectedUsersDisplay();
+}
+
+function updateSelectedUsersDisplay() {
+    const container = document.getElementById('selected_users_display');
+    
+    if (selectedUsers.size === 0) {
+        container.innerHTML = '<span class="text-muted">Henüz kimse seçilmedi</span>';
+        return;
+    }
+    
+    const selectedUserElements = Array.from(selectedUsers).map(userId => {
+        const user = allUsers.find(u => u.id === userId);
+        if (!user) return '';
+        
+        return `
+            <span class="selected-user-badge">
+                ${user.first_name} ${user.last_name}
+                <button type="button" class="btn-close btn-close-sm ms-1" 
+                        onclick="toggleUser(${user.id}, '${user.first_name} ${user.last_name}', '${user.department_name || ''}')"></button>
+            </span>
+        `;
+    }).join('');
+    
+    container.innerHTML = selectedUserElements;
+}
+
+function updatePreview() {
+    const title = document.getElementById('notification_title').value || 'Başlık giriniz';
+    const message = document.getElementById('notification_message').value || 'Mesajınız burada görünecek';
+    
+    document.getElementById('preview_title').textContent = title;
+    document.getElementById('preview_message').textContent = message;
+}
+
+function sendNotification(e) {
+    e.preventDefault();
+    
+    const recipientType = document.querySelector('input[name="recipient_type"]:checked').value;
+    const title = document.getElementById('notification_title').value;
+    const message = document.getElementById('notification_message').value;
+    const priority = document.getElementById('notification_priority').value;
+    const sendInApp = document.getElementById('send_in_app').checked;
+    const sendEmail = document.getElementById('send_email').checked;
+    const sendWhatsApp = document.getElementById('send_whatsapp').checked;
+    const sendTiming = document.querySelector('input[name="send_timing"]:checked').value;
+    const scheduledTime = document.getElementById('scheduled_time').value;
+    
+    // Validasyon
+    if (!title || !message) {
+        showToast('Başlık ve mesaj alanları zorunludur', 'error');
+        return;
+    }
+    
+    if (!sendInApp && !sendEmail && !sendWhatsApp) {
+        showToast('En az bir gönderim kanalı seçmelisiniz', 'error');
+        return;
+    }
+    
+    // Alıcıları belirle
+    let recipients = [];
+    
+    if (recipientType === 'all') {
+        recipients = ['all'];
+    } else if (recipientType === 'departments') {
+        const selectedDepts = Array.from(document.getElementById('selected_departments').selectedOptions)
+                                   .map(option => option.value);
+        if (selectedDepts.length === 0) {
+            showToast('En az bir departman seçmelisiniz', 'error');
+            return;
+        }
+        recipients = selectedDepts.map(id => `dept_${id}`);
+    } else if (recipientType === 'users') {
+        if (selectedUsers.size === 0) {
+            showToast('En az bir kullanıcı seçmelisiniz', 'error');
+            return;
+        }
+        recipients = Array.from(selectedUsers).map(id => `user_${id}`);
+    }
+    
+    const formData = {
+        recipient_type: recipientType,
+        recipients: recipients,
+        title: title,
+        message: message,
+        priority: priority,
+        channels: {
+            in_app: sendInApp,
+            email: sendEmail,
+            whatsapp: sendWhatsApp
+        },
+        send_timing: sendTiming,
+        scheduled_time: sendTiming === 'scheduled' ? scheduledTime : null
+    };
+    
+    // Gönder butonu loading
+    const sendBtn = document.getElementById('send_notification_btn');
+    sendBtn.disabled = true;
+    sendBtn.innerHTML = '<i class="spinner-border spinner-border-sm me-1"></i>Gönderiliyor...';
+    
+    fetch('/api/admin/send-notification', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast(`Bildirim başarıyla gönderildi! ${data.sent_count} kişiye ulaştı.`, 'success');
+            // Formu temizle
+            document.getElementById('notificationForm').reset();
+            selectedUsers.clear();
+            updateSelectedUsersDisplay();
+            updatePreview();
+        } else {
+            showToast(data.error || 'Bildirim gönderilirken hata oluştu', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Bildirim gönderme hatası:', error);
+        showToast('Bildirim gönderilirken hata oluştu', 'error');
+    })
+    .finally(() => {
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = '<i class="bi bi-send me-1"></i>Bildirim Gönder';
+    });
+}
+</script>
+{% endblock %} 

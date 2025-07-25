@@ -61,6 +61,31 @@
                                 {% endfor %}
                             </select>
                         </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="role_id" class="form-label">Yetki/Rol</label>
+                            <select class="form-control" id="role_id" name="role_id">
+                                <option value="">Standart Kullanıcı (Rol Yok)</option>
+                                {% for role in roles %}
+                                    <option value="{{ role.id }}" 
+                                            {% if role.id == user.current_role_id %}selected{% endif %}>
+                                        {{ role.name }}
+                                        {% if role.name == 'İK Yöneticisi' %}
+                                            - Portal yönetimi yetkisi
+                                        {% elif role.name == 'Admin' %}
+                                            - Tam sistem yetkisi
+                                        {% elif role.name == 'İçerik Yöneticisi' %}
+                                            - Duyuru/içerik yönetimi
+                                        {% endif %}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <small class="form-text text-muted">
+                                İK Yöneticisi: Personel işlemleri ve sistem ayarlarına erişim<br>
+                                Admin: Tüm sistem yetkilerine sahip<br>
+                                İçerik Yöneticisi: Duyuru ve içerik yönetimi yetkisi
+                            </small>
+                        </div>
                     </div>
                     
                     <div class="d-flex justify-content-between align-items-center mt-4">
