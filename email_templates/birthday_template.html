@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doğum Günü Kutlaması</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .header {
+            background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+        }
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #4ECDC4;
+            font-weight: bold;
+        }
+        .award-icon {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 3rem;
+            animation: rotate 3s linear infinite;
+        }
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .content {
+            padding: 40px 30px;
+            text-align: center;
+        }
+        .title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        .subtitle {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        .employee-info {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin: 30px 0;
+            border-left: 5px solid #4ECDC4;
+        }
+        .employee-name {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .employee-details {
+            color: #666;
+            font-size: 1.1rem;
+            line-height: 1.5;
+        }
+        .celebration-box {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 25px;
+            border-radius: 15px;
+            margin: 30px 0;
+            text-align: center;
+        }
+        .celebration-text {
+            font-size: 1.2rem;
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        .wishes {
+            font-size: 1.1rem;
+            color: #555;
+            line-height: 1.6;
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            color: #666;
+        }
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .footer-icon {
+            color: #4ECDC4;
+            font-size: 1.2rem;
+        }
+        .social-links {
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+        .trophy {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            font-size: 4rem;
+            opacity: 0.1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="award-icon">🏆</div>
+            <div class="logo">
+                <div class="logo-icon">+</div>
+                <span>plus Kitchen</span>
+            </div>
+        </div>
+        
+        <div class="content">
+            <h1 class="title">Tebrik Ederiz !</h1>
+            
+            <p class="subtitle">
+                Birlikte büyüyor ve birlikte yükselmeye devam ediyoruz.
+            </p>
+            
+            <div class="employee-info">
+                <div class="employee-name">{{first_name}} {{last_name}}</div>
+                <div class="employee-details">
+                    Ailemizin değerli üyesi <strong>{{first_name}}</strong> restoranımızda 
+                    <strong>{{department_name}}</strong> olarak sürdürdüğü görevinde göstermiş olduğu özveri ve 
+                    başarısı için tebrik ederiz.
+                </div>
+            </div>
+            
+            <div class="celebration-box">
+                <div class="celebration-text">
+                    Doğum gününüz kutlu olsun! 🎂
+                </div>
+                <div class="wishes">
+                    <strong>{{first_name}}</strong>'e yeni görevinde başarılar dileriz.
+                </div>
+            </div>
+            
+            <div class="message">
+                Plus Kitchen ailesi olarak, yeni yaşınızın <span class="highlight">sağlık, mutluluk ve başarılarla</span> dolu olmasını diliyoruz.
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div class="gift-section">
+                <div class="gift-icon">🎁</div>
+                <div class="gift-text">
+                    Size özel sürprizlerimiz var!<br>
+                    Detaylar için İK departmanımızla iletişime geçebilirsiniz.
+                </div>
+            </div>
+            
+            <div class="message" style="text-align: center; margin-top: 30px;">
+                <strong>En iyi dileklerimizle,</strong><br>
+                <span class="highlight">Plus Kitchen İnsan Kaynakları</span>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <div class="footer-logo">
+                <span class="footer-icon">📧</span>
+                <span>pluskitchentr</span>
+            </div>
+            <div class="social-links">
+                pluskitchen.com.tr
+            </div>
+        </div>
+    </div>
+</body>
+</html>

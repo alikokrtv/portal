@@ -1097,6 +1097,42 @@ def profile():
 def settings():
     return render_template('settings.html')
 
+@app.route('/email-templates')
+@require_admin
+def email_templates():
+    """Email template yönetimi - Sadece admin"""
+    return render_template('email_templates.html')
+
+@app.route('/api/save-email-template', methods=['POST'])
+@require_admin
+def save_email_template():
+    """Email template kaydet - Sadece admin"""
+    try:
+        data = request.get_json()
+        template_type = data.get('type')
+        subject = data.get('subject')
+        html_content = data.get('html')
+        
+        if not all([template_type, subject, html_content]):
+            return jsonify({'success': False, 'error': 'Eksik veri'})
+        
+        # Template dosyasını kaydet
+        template_filename = f"{template_type}_template.html"
+        template_path = os.path.join('email_templates', template_filename)
+        
+        # Dizin yoksa oluştur
+        os.makedirs('email_templates', exist_ok=True)
+        
+        # Template dosyasını kaydet
+        with open(template_path, 'w', encoding='utf-8') as f:
+            f.write(html_content)
+        
+        return jsonify({'success': True, 'message': 'Template başarıyla kaydedildi'})
+        
+    except Exception as e:
+        print(f"Email template kaydetme hatası: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
 @app.route('/reports')
 @require_login
 def reports():
@@ -2208,6 +2244,6 @@ if __name__ == '__main__':
     app.run(
         debug=True,
         host='0.0.0.0',
-        port=6600,
+        port=80,
         load_dotenv=False  # .env problemi için devre dışı
     ) 

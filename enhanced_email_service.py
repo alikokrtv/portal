@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Gelişmiş Email Service - HTML Template'li Kutlama Mailleri
+"""
+
 import smtplib
 import ssl
 from email.mime.text import MIMEText
@@ -5,8 +11,9 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email import encoders
 import os
+from datetime import datetime
 
-class EmailService:
+class EnhancedEmailService:
     def __init__(self):
         self.smtp_server = "mail.kurumsaleposta.com"
         self.smtp_port = 465  # SSL port
@@ -14,10 +21,11 @@ class EmailService:
         self.smtp_password = "apV6Q69@-Ll@fS5="
         self.sender_email = "portal@pluskitchen.com.tr"
         self.sender_name = "portal.pluskitchen.com.tr"
+        self.template_dir = "email_templates"
 
     def send_email(self, to_email, subject, html_content, plain_content=None):
         """
-        E-posta gönder
+        E-posta gönder (STARTTLS ile)
         """
         try:
             # E-posta mesajını oluştur
@@ -35,13 +43,8 @@ class EmailService:
             part2 = MIMEText(html_content, "html", "utf-8")
             message.attach(part2)
 
-            # SSL ile SMTP bağlantısı kur (legacy renegotiation desteği ile)
-            context = ssl.create_default_context()
-            context.check_hostname = False
-            context.verify_mode = ssl.CERT_NONE
-            # Legacy renegotiation'a izin ver
-            context.options |= 0x4  # OP_LEGACY_SERVER_CONNECT
-            server = smtplib.SMTP_SSL(self.smtp_server, self.smtp_port, context=context)
+            # SSL ile SMTP bağlantısı kur
+            server = smtplib.SMTP_SSL(self.smtp_server, self.smtp_port)
             server.login(self.smtp_username, self.smtp_password)
             server.sendmail(self.sender_email, to_email, message.as_string())
             server.quit()
@@ -53,9 +56,107 @@ class EmailService:
             print(f"❌ E-posta gönderme hatası: {e}")
             return False
 
+    def load_template(self, template_name):
+        """
+        HTML template dosyasını yükle
+        """
+        try:
+            template_path = os.path.join(self.template_dir, template_name)
+            with open(template_path, 'r', encoding='utf-8') as file:
+                return file.read()
+        except Exception as e:
+            print(f"❌ Template yükleme hatası: {e}")
+            return None
+
+    def replace_variables(self, template, variables):
+        """
+        Template'teki değişkenleri değiştir
+        """
+        for key, value in variables.items():
+            placeholder = f"{{{{{key}}}}}"
+            template = template.replace(placeholder, str(value))
+        return template
+
+    def send_birthday_email(self, to_email, first_name, last_name, birth_date=None):
+        """
+        Doğum günü kutlama maili gönder
+        """
+        # HTML template'i yükle
+        html_template = self.load_template("birthday_template.html")
+        if not html_template:
+            return False
+
+        # Değişkenleri hazırla
+        variables = {
+            'first_name': first_name,
+            'last_name': last_name,
+            'birth_date': birth_date.strftime('%d.%m.%Y') if birth_date else 'Belirtilmemiş'
+        }
+
+        # Template'i doldur
+        html_content = self.replace_variables(html_template, variables)
+        
+        # Plain text versiyonu
+        plain_content = f"""
+        Sevgili {first_name} {last_name},
+
+        🎂 Bugün sizin özel gününüz! Doğum gününüzü kutluyoruz ve sizinle birlikte olmaktan gurur duyuyoruz.
+
+        Plus Kitchen ailesi olarak, yeni yaşınızın sağlık, mutluluk ve başarılarla dolu olmasını diliyoruz.
+
+        🎁 Size özel sürprizlerimiz var! Detaylar için İK departmanımızla iletişime geçebilirsiniz.
+
+        En iyi dileklerimizle,
+        Plus Kitchen İnsan Kaynakları
+        """
+
+        subject = "🎉 Doğum Gününüz Kutlu Olsun!"
+        
+        return self.send_email(to_email, subject, html_content, plain_content)
+
+    def send_anniversary_email(self, to_email, first_name, last_name, hire_date, years):
+        """
+        İş yıl dönümü kutlama maili gönder
+        """
+        # HTML template'i yükle
+        html_template = self.load_template("anniversary_template.html")
+        if not html_template:
+            return False
+
+        # Değişkenleri hazırla
+        variables = {
+            'first_name': first_name,
+            'last_name': last_name,
+            'hire_date': hire_date.strftime('%d.%m.%Y') if hire_date else 'Belirtilmemiş',
+            'years': years
+        }
+
+        # Template'i doldur
+        html_content = self.replace_variables(html_template, variables)
+        
+        # Plain text versiyonu
+        plain_content = f"""
+        Sevgili {first_name} {last_name},
+
+        🎊 Bugün Plus Kitchen ailesindeki {years}. yılınızı kutluyoruz!
+
+        {hire_date.strftime('%d.%m.%Y') if hire_date else 'İşe başlama'} tarihinden bugüne kadar gösterdiğiniz özveri ve katkılarınız için teşekkür ederiz. Sizinle çalışmak bizim için bir onur.
+
+        Önümüzdeki yıllarda da birlikte büyümeye ve başarılar elde etmeye devam edeceğiz.
+
+        🎁 Size özel yıl dönümü hediyeniz İK departmanımızda sizleri bekliyor!
+
+        Saygılarımızla,
+        Plus Kitchen Yönetimi
+        """
+
+        subject = f"🏆 {years} Yıllık İş Yıl Dönümünüz Kutlu Olsun!"
+        
+        return self.send_email(to_email, subject, html_content, plain_content)
+
     def send_password_reset_email(self, to_email, reset_link, user_name):
         """
-        Şifre sıfırlama e-postası gönder
+        Şifre sıfırlama e-postası gönder (mevcut fonksiyon)
         """
         subject = "Plus Kitchen Portal - Şifre Sıfırlama"
         
@@ -124,5 +225,5 @@ class EmailService:
         
         return self.send_email(to_email, subject, html_content, plain_content)
 
-# Global email service instance
-email_service = EmailService() 
+# Global enhanced email service instance
+enhanced_email_service = EnhancedEmailService()

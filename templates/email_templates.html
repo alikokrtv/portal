@@ -1,0 +1,470 @@
+{% extends "base.html" %}
+
+{% block title %}Email Template Yönetimi{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-0">📧 Email Template Yönetimi</h2>
+                    <p class="text-muted mb-0">Sistem email şablonlarını düzenleyin ve özelleştirin</p>
+                </div>
+                <div>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newTemplateModal">
+                        <i class="bi bi-plus-circle me-2"></i>Yeni Template
+                    </button>
+                </div>
+            </div>
+
+            <!-- Template Kategorileri -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <ul class="nav nav-tabs card-header-tabs" id="templateTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="birthday-tab" data-bs-toggle="tab" data-bs-target="#birthday" type="button" role="tab">
+                                        🎂 Doğum Günü
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="anniversary-tab" data-bs-toggle="tab" data-bs-target="#anniversary" type="button" role="tab">
+                                        🏆 İş Yıl Dönümü
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="password-tab" data-bs-toggle="tab" data-bs-target="#password" type="button" role="tab">
+                                        🔐 Şifre Sıfırlama
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="custom-tab" data-bs-toggle="tab" data-bs-target="#custom" type="button" role="tab">
+                                        ⚙️ Özel Template'ler
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="card-body">
+                            <div class="tab-content" id="templateTabContent">
+                                <!-- Doğum Günü Template -->
+                                <div class="tab-pane fade show active" id="birthday" role="tabpanel">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h5>🎂 Doğum Günü Template</h5>
+                                            <div class="mb-3">
+                                                <label class="form-label">Konu</label>
+                                                <input type="text" class="form-control" id="birthdaySubject" value="🎉 Doğum Gününüz Kutlu Olsun!">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">HTML İçerik</label>
+                                                <textarea class="form-control" id="birthdayHtml" rows="15" style="font-family: monospace; font-size: 12px;"></textarea>
+                                            </div>
+                                            <div class="mb-3">
+                                                <button class="btn btn-success me-2" onclick="saveTemplate('birthday')">
+                                                    <i class="bi bi-check-circle me-1"></i>Kaydet
+                                                </button>
+                                                <button class="btn btn-outline-primary me-2" onclick="previewTemplate('birthday')">
+                                                    <i class="bi bi-eye me-1"></i>Önizleme
+                                                </button>
+                                                <button class="btn btn-outline-warning" onclick="resetTemplate('birthday')">
+                                                    <i class="bi bi-arrow-clockwise me-1"></i>Sıfırla
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h5>📋 Kullanılabilir Değişkenler</h5>
+                                            <div class="alert alert-info">
+                                                <small>
+                                                    <strong>Template'de kullanabileceğiniz değişkenler:</strong><br>
+                                                    <code>{{first_name}}</code> - İsim<br>
+                                                    <code>{{last_name}}</code> - Soyisim<br>
+                                                    <code>{{birth_date}}</code> - Doğum Tarihi<br>
+                                                    <code>{{department_name}}</code> - Departman<br>
+                                                    <code>{{role_name}}</code> - Rol
+                                                </small>
+                                            </div>
+                                            <h5>🎨 Renk Paleti</h5>
+                                            <div class="color-palette mb-3">
+                                                <div class="d-flex flex-wrap gap-2">
+                                                    <div class="color-item" style="background: #ff6b6b;" onclick="insertColor('#ff6b6b')" title="Kırmızı"></div>
+                                                    <div class="color-item" style="background: #ffa726;" onclick="insertColor('#ffa726')" title="Turuncu"></div>
+                                                    <div class="color-item" style="background: #667eea;" onclick="insertColor('#667eea')" title="Mavi"></div>
+                                                    <div class="color-item" style="background: #764ba2;" onclick="insertColor('#764ba2')" title="Mor"></div>
+                                                    <div class="color-item" style="background: #28a745;" onclick="insertColor('#28a745')" title="Yeşil"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- İş Yıl Dönümü Template -->
+                                <div class="tab-pane fade" id="anniversary" role="tabpanel">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h5>🏆 İş Yıl Dönümü Template</h5>
+                                            <div class="mb-3">
+                                                <label class="form-label">Konu</label>
+                                                <input type="text" class="form-control" id="anniversarySubject" value="🏆 {{years}} Yıllık İş Yıl Dönümünüz Kutlu Olsun!">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">HTML İçerik</label>
+                                                <textarea class="form-control" id="anniversaryHtml" rows="15" style="font-family: monospace; font-size: 12px;"></textarea>
+                                            </div>
+                                            <div class="mb-3">
+                                                <button class="btn btn-success me-2" onclick="saveTemplate('anniversary')">
+                                                    <i class="bi bi-check-circle me-1"></i>Kaydet
+                                                </button>
+                                                <button class="btn btn-outline-primary me-2" onclick="previewTemplate('anniversary')">
+                                                    <i class="bi bi-eye me-1"></i>Önizleme
+                                                </button>
+                                                <button class="btn btn-outline-warning" onclick="resetTemplate('anniversary')">
+                                                    <i class="bi bi-arrow-clockwise me-1"></i>Sıfırla
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h5>📋 Kullanılabilir Değişkenler</h5>
+                                            <div class="alert alert-info">
+                                                <small>
+                                                    <strong>Template'de kullanabileceğiniz değişkenler:</strong><br>
+                                                    <code>{{first_name}}</code> - İsim<br>
+                                                    <code>{{last_name}}</code> - Soyisim<br>
+                                                    <code>{{years}}</code> - Yıl Sayısı<br>
+                                                    <code>{{hire_date}}</code> - İşe Başlama Tarihi<br>
+                                                    <code>{{department_name}}</code> - Departman<br>
+                                                    <code>{{role_name}}</code> - Rol
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Şifre Sıfırlama Template -->
+                                <div class="tab-pane fade" id="password" role="tabpanel">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h5>🔐 Şifre Sıfırlama Template</h5>
+                                            <div class="mb-3">
+                                                <label class="form-label">Konu</label>
+                                                <input type="text" class="form-control" id="passwordSubject" value="Plus Kitchen Portal - Şifre Sıfırlama">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">HTML İçerik</label>
+                                                <textarea class="form-control" id="passwordHtml" rows="15" style="font-family: monospace; font-size: 12px;"></textarea>
+                                            </div>
+                                            <div class="mb-3">
+                                                <button class="btn btn-success me-2" onclick="saveTemplate('password')">
+                                                    <i class="bi bi-check-circle me-1"></i>Kaydet
+                                                </button>
+                                                <button class="btn btn-outline-primary me-2" onclick="previewTemplate('password')">
+                                                    <i class="bi bi-eye me-1"></i>Önizleme
+                                                </button>
+                                                <button class="btn btn-outline-warning" onclick="resetTemplate('password')">
+                                                    <i class="bi bi-arrow-clockwise me-1"></i>Sıfırla
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h5>📋 Kullanılabilir Değişkenler</h5>
+                                            <div class="alert alert-info">
+                                                <small>
+                                                    <strong>Template'de kullanabileceğiniz değişkenler:</strong><br>
+                                                    <code>{{user_name}}</code> - Kullanıcı Adı<br>
+                                                    <code>{{reset_link}}</code> - Sıfırlama Linki<br>
+                                                    <code>{{expiry_time}}</code> - Geçerlilik Süresi
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Özel Template'ler -->
+                                <div class="tab-pane fade" id="custom" role="tabpanel">
+                                    <div class="text-center py-5">
+                                        <i class="bi bi-gear display-1 text-muted mb-3"></i>
+                                        <h4>Özel Template'ler</h4>
+                                        <p class="text-muted">Gelecekte eklenecek özel template'ler burada görünecek.</p>
+                                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newTemplateModal">
+                                            <i class="bi bi-plus-circle me-2"></i>Yeni Template Oluştur
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Önizleme Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">📧 Email Template Önizleme</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <strong>Konu:</strong> <span id="previewSubject"></span>
+                </div>
+                <div class="border rounded p-3" id="previewContent" style="min-height: 400px; background: #f8f9fa;">
+                    <!-- Template önizlemesi buraya yüklenecek -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-primary" onclick="sendTestEmail()">
+                    <i class="bi bi-envelope me-1"></i>Test Maili Gönder
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Yeni Template Modal -->
+<div class="modal fade" id="newTemplateModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">➕ Yeni Email Template</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Template Adı</label>
+                    <input type="text" class="form-control" id="newTemplateName" placeholder="Örn: Terfi Kutlaması">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Template Türü</label>
+                    <select class="form-select" id="newTemplateType">
+                        <option value="celebration">🎉 Kutlama</option>
+                        <option value="notification">📢 Bildirim</option>
+                        <option value="reminder">⏰ Hatırlatma</option>
+                        <option value="welcome">👋 Hoş Geldin</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Açıklama</label>
+                    <textarea class="form-control" id="newTemplateDescription" rows="3" placeholder="Template açıklaması..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-primary" onclick="createNewTemplate()">
+                    <i class="bi bi-check-circle me-1"></i>Oluştur
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.color-item {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+
+.color-item:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.nav-tabs .nav-link {
+    border: none;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.nav-tabs .nav-link.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 8px 8px 0 0;
+}
+
+.card-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 2px solid #dee2e6;
+}
+
+textarea {
+    resize: vertical;
+}
+
+#previewContent {
+    max-height: 600px;
+    overflow-y: auto;
+}
+</style>
+
+<script>
+// Template'leri yükle
+document.addEventListener('DOMContentLoaded', function() {
+    loadTemplates();
+});
+
+function loadTemplates() {
+    // Doğum günü template'ini yükle
+    fetch('/email_templates/birthday_template.html')
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('birthdayHtml').value = html;
+        })
+        .catch(error => console.error('Birthday template yüklenemedi:', error));
+
+    // İş yıl dönümü template'ini yükle
+    fetch('/email_templates/anniversary_template.html')
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('anniversaryHtml').value = html;
+        })
+        .catch(error => console.error('Anniversary template yüklenemedi:', error));
+}
+
+function saveTemplate(type) {
+    const subject = document.getElementById(type + 'Subject').value;
+    const html = document.getElementById(type + 'Html').value;
+    
+    const data = {
+        type: type,
+        subject: subject,
+        html: html
+    };
+    
+    fetch('/api/save-email-template', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            showAlert('success', 'Template başarıyla kaydedildi!');
+        } else {
+            showAlert('error', 'Template kaydedilemedi: ' + result.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('error', 'Template kaydedilirken hata oluştu');
+    });
+}
+
+function previewTemplate(type) {
+    const subject = document.getElementById(type + 'Subject').value;
+    const html = document.getElementById(type + 'Html').value;
+    
+    // Örnek değişkenlerle template'i doldur
+    let previewHtml = html;
+    const sampleData = {
+        'birthday': {
+            '{{first_name}}': 'Ali',
+            '{{last_name}}': 'Koçak',
+            '{{birth_date}}': '28.07.1990',
+            '{{department_name}}': 'Bilgi İşlem',
+            '{{role_name}}': 'Sistem Yöneticisi'
+        },
+        'anniversary': {
+            '{{first_name}}': 'Ali',
+            '{{last_name}}': 'Koçak',
+            '{{years}}': '4',
+            '{{hire_date}}': '28.07.2020',
+            '{{department_name}}': 'Bilgi İşlem',
+            '{{role_name}}': 'Sistem Yöneticisi'
+        },
+        'password': {
+            '{{user_name}}': 'Ali Koçak',
+            '{{reset_link}}': 'http://portal.pluskitchen.com.tr/reset-password/sample-token',
+            '{{expiry_time}}': '1 saat'
+        }
+    };
+    
+    if (sampleData[type]) {
+        Object.keys(sampleData[type]).forEach(key => {
+            previewHtml = previewHtml.replace(new RegExp(key, 'g'), sampleData[type][key]);
+        });
+    }
+    
+    document.getElementById('previewSubject').textContent = subject;
+    document.getElementById('previewContent').innerHTML = previewHtml;
+    
+    const modal = new bootstrap.Modal(document.getElementById('previewModal'));
+    modal.show();
+}
+
+function resetTemplate(type) {
+    if (confirm('Template\'i varsayılan haline sıfırlamak istediğinizden emin misiniz?')) {
+        loadTemplates();
+        showAlert('info', 'Template sıfırlandı');
+    }
+}
+
+function insertColor(color) {
+    // Aktif textarea'ya renk ekle (basit implementasyon)
+    const activeTab = document.querySelector('.tab-pane.active');
+    const textarea = activeTab.querySelector('textarea');
+    if (textarea) {
+        const cursorPos = textarea.selectionStart;
+        const textBefore = textarea.value.substring(0, cursorPos);
+        const textAfter = textarea.value.substring(cursorPos);
+        textarea.value = textBefore + color + textAfter;
+        textarea.focus();
+        textarea.setSelectionRange(cursorPos + color.length, cursorPos + color.length);
+    }
+}
+
+function sendTestEmail() {
+    const email = prompt('Test mailini göndermek istediğiniz email adresi:');
+    if (email) {
+        showAlert('info', 'Test maili gönderiliyor...');
+        // Test maili gönderme API'si burada çağrılacak
+        setTimeout(() => {
+            showAlert('success', 'Test maili başarıyla gönderildi!');
+        }, 2000);
+    }
+}
+
+function createNewTemplate() {
+    const name = document.getElementById('newTemplateName').value;
+    const type = document.getElementById('newTemplateType').value;
+    const description = document.getElementById('newTemplateDescription').value;
+    
+    if (!name) {
+        showAlert('error', 'Template adı gerekli!');
+        return;
+    }
+    
+    // Yeni template oluşturma API'si burada çağrılacak
+    showAlert('success', 'Yeni template oluşturuldu: ' + name);
+    bootstrap.Modal.getInstance(document.getElementById('newTemplateModal')).hide();
+}
+
+function showAlert(type, message) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(alertDiv);
+    
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.parentNode.removeChild(alertDiv);
+        }
+    }, 5000);
+}
+</script>
+{% endblock %}

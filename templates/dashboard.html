@@ -46,6 +46,52 @@
                             </div>
                         </a>
                     </div>
+                    <div class="col-lg-6 col-md-6">
+                        <a href="https://forms.office.com/pages/responsepage.aspx?id=ZNXn-oeI3kq_BRP_tPi5y5bA8kIM7jtMuIAflPrIu9JUOTNZUTIwTE5PUktBRDRTTDlFMFZZMldHSi4u&route=shorturl" target="_blank" class="quick-link-item complaint">
+                            <div class="quick-link-icon">
+                                <i class="bi bi-chat-square-text-fill"></i>
+                            </div>
+                            <div class="quick-link-content">
+                                <h6 class="quick-link-title">Şikayet Formu</h6>
+                                <p class="quick-link-desc">Görüş ve şikayetlerinizi bildirin</p>
+                                <span class="quick-link-url">forms.office.com</span>
+                            </div>
+                            <div class="quick-link-arrow">
+                                <i class="bi bi-arrow-up-right"></i>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-lg-6 col-md-6">
+                        {% if session.is_admin %}
+                        <a href="/email-templates" class="quick-link-item admin">
+                            <div class="quick-link-icon">
+                                <i class="bi bi-envelope-paper-fill"></i>
+                            </div>
+                            <div class="quick-link-content">
+                                <h6 class="quick-link-title">Email Template'leri</h6>
+                                <p class="quick-link-desc">Mail şablonlarını düzenleyin</p>
+                                <span class="quick-link-url">Sadece Admin</span>
+                            </div>
+                            <div class="quick-link-arrow">
+                                <i class="bi bi-arrow-right"></i>
+                            </div>
+                        </a>
+                        {% else %}
+                        <a href="/profile" class="quick-link-item profile">
+                            <div class="quick-link-icon">
+                                <i class="bi bi-person-circle"></i>
+                            </div>
+                            <div class="quick-link-content">
+                                <h6 class="quick-link-title">Profilim</h6>
+                                <p class="quick-link-desc">Profil bilgilerinizi güncelleyin</p>
+                                <span class="quick-link-url">Kişisel Bilgiler</span>
+                            </div>
+                            <div class="quick-link-arrow">
+                                <i class="bi bi-arrow-right"></i>
+                            </div>
+                        </a>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
@@ -218,18 +264,21 @@
         <!-- Online Kullanıcılar Widget (Sadece Admin ve İK Yöneticileri) -->
         {% if session.is_admin or session.role_name == 'İK Yöneticisi' %}
         <div class="card mb-4 modern-widget-card">
-            <div class="card-header modern-online-header">
-                <div class="header-content">
-                    <div class="header-icon">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <div class="widget-icon me-3">
                         <i class="bi bi-people-fill"></i>
                     </div>
-                    <div class="header-text">
+                    <div>
                         <h5 class="mb-0">Çevrimiçi Kullanıcılar</h5>
-                        <small class="header-subtitle">Son 5 dakika içinde aktif</small>
+                        <small class="text-muted">Son 5 dakika içinde aktif</small>
                     </div>
-                    <div class="online-count-badge">
-                        <span id="onlineCount">0</span>
-                    </div>
+                </div>
+                <div class="d-flex align-items-center">
+                    <span class="badge bg-success me-2" id="onlineCount">0</span>
+                    <button class="btn btn-sm btn-outline-primary" onclick="refreshOnlineUsers()" title="Yenile">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
                 </div>
             </div>
             <div class="card-body p-0">
@@ -240,6 +289,20 @@
                     </div>
                     <div id="onlineUsersList" class="online-users-list" style="display: none;">
                         <!-- Online kullanıcılar buraya yüklenecek -->
+                    </div>
+                    <!-- Pagination -->
+                    <div class="card-footer bg-light border-0" id="onlineUsersPagination" style="display: none;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted" id="onlineUsersInfo">1-5 / 12 kullanıcı</small>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-secondary" id="onlineUsersPrev" onclick="changeOnlineUsersPage(-1)">
+                                    <i class="bi bi-chevron-left"></i>
+                                </button>
+                                <button class="btn btn-outline-secondary" id="onlineUsersNext" onclick="changeOnlineUsersPage(1)">
+                                    <i class="bi bi-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1982,6 +2045,33 @@
     box-shadow: 0 8px 25px rgba(22, 163, 74, 0.15);
 }
 
+.quick-link-item.complaint {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+}
+
+.quick-link-item.complaint:hover {
+    border-color: #d97706;
+    box-shadow: 0 8px 25px rgba(217, 119, 6, 0.15);
+}
+
+.quick-link-item.admin {
+    background: linear-gradient(135deg, #fdf4ff 0%, #fae8ff 100%);
+}
+
+.quick-link-item.admin:hover {
+    border-color: #a855f7;
+    box-shadow: 0 8px 25px rgba(168, 85, 247, 0.15);
+}
+
+.quick-link-item.profile {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+}
+
+.quick-link-item.profile:hover {
+    border-color: #64748b;
+    box-shadow: 0 8px 25px rgba(100, 116, 139, 0.15);
+}
+
 .quick-link-icon {
     flex-shrink: 0;
     width: 50px;
@@ -2569,5 +2659,110 @@ window.checkCarousel = function() {
 };
 
 console.log('Dashboard scripts loaded. Call window.checkCarousel() to debug.');
+
+// Çevrimiçi kullanıcılar pagination değişkenleri
+let onlineUsersCurrentPage = 1;
+let onlineUsersPerPage = 5;
+let onlineUsersData = [];
+
+// Çevrimiçi kullanıcıları yenile
+function refreshOnlineUsers() {
+    console.log('Refreshing online users...');
+    loadOnlineUsers();
+}
+
+// Çevrimiçi kullanıcılar sayfa değiştir
+function changeOnlineUsersPage(direction) {
+    const totalPages = Math.ceil(onlineUsersData.length / onlineUsersPerPage);
+    const newPage = onlineUsersCurrentPage + direction;
+    
+    if (newPage >= 1 && newPage <= totalPages) {
+        onlineUsersCurrentPage = newPage;
+        displayOnlineUsers();
+    }
+}
+
+// Çevrimiçi kullanıcıları göster
+function displayOnlineUsers() {
+    const startIndex = (onlineUsersCurrentPage - 1) * onlineUsersPerPage;
+    const endIndex = startIndex + onlineUsersPerPage;
+    const pageData = onlineUsersData.slice(startIndex, endIndex);
+    
+    const container = document.getElementById('onlineUsersList');
+    const emptyDiv = document.getElementById('onlineUsersEmpty');
+    const pagination = document.getElementById('onlineUsersPagination');
+    const countBadge = document.getElementById('onlineCount');
+    const infoText = document.getElementById('onlineUsersInfo');
+    const prevBtn = document.getElementById('onlineUsersPrev');
+    const nextBtn = document.getElementById('onlineUsersNext');
+    
+    if (onlineUsersData.length === 0) {
+        container.style.display = 'none';
+        emptyDiv.style.display = 'block';
+        pagination.style.display = 'none';
+        countBadge.textContent = '0';
+        return;
+    }
+    
+    // Kullanıcıları göster
+    container.innerHTML = pageData.map(user => `
+        <div class="online-user-item d-flex align-items-center p-3 border-bottom">
+            <div class="online-status me-3">
+                <div class="status-dot bg-success"></div>
+            </div>
+            <div class="user-info flex-grow-1">
+                <div class="user-name fw-bold">${user.first_name} ${user.last_name}</div>
+                <div class="user-details text-muted small">
+                    <i class="bi bi-building me-1"></i>${user.department_name || 'Bilinmiyor'}
+                    <span class="mx-2">•</span>
+                    <i class="bi bi-person-badge me-1"></i>${user.role_name || 'Kullanıcı'}
+                </div>
+            </div>
+            <div class="activity-time text-muted small">
+                ${formatLastActivity(user.last_activity)}
+            </div>
+        </div>
+    `).join('');
+    
+    container.style.display = 'block';
+    emptyDiv.style.display = 'none';
+    
+    // Pagination göster
+    const totalPages = Math.ceil(onlineUsersData.length / onlineUsersPerPage);
+    if (totalPages > 1) {
+        pagination.style.display = 'block';
+        const startItem = startIndex + 1;
+        const endItem = Math.min(endIndex, onlineUsersData.length);
+        infoText.textContent = `${startItem}-${endItem} / ${onlineUsersData.length} kullanıcı`;
+        
+        prevBtn.disabled = onlineUsersCurrentPage === 1;
+        nextBtn.disabled = onlineUsersCurrentPage === totalPages;
+    } else {
+        pagination.style.display = 'none';
+    }
+    
+    // Toplam sayıyı güncelle
+    countBadge.textContent = onlineUsersData.length;
+}
+
+// Mevcut loadOnlineUsers fonksiyonunu güncelle
+if (typeof loadOnlineUsers !== 'undefined') {
+    const originalLoadOnlineUsers = loadOnlineUsers;
+    loadOnlineUsers = function() {
+        fetch('/api/online-users')
+            .then(response => response.json())
+            .then(data => {
+                onlineUsersData = data;
+                onlineUsersCurrentPage = 1; // Sayfa sıfırla
+                displayOnlineUsers();
+            })
+            .catch(error => {
+                console.error('Error loading online users:', error);
+                onlineUsersData = [];
+                displayOnlineUsers();
+            });
+    };
+}
+
 </script>
 {% endblock %} 

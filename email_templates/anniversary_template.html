@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İş Yıl Dönümü Kutlaması</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .header {
+            background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+        }
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #4ECDC4;
+            font-weight: bold;
+        }
+        .award-icon {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 3rem;
+            animation: rotate 3s linear infinite;
+        }
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .header::before {
+            content: '🏆';
+            font-size: 60px;
+            position: absolute;
+            top: 10px;
+            left: 30px;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        .header::after {
+            content: '🎊';
+            font-size: 60px;
+            position: absolute;
+            top: 10px;
+            right: 30px;
+            animation: glow 2s ease-in-out infinite alternate 0.5s;
+        }
+        @keyframes glow {
+            from { text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #f39c12; }
+            to { text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #f39c12; }
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            line-height: 1.2;
+        }
+        .years-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 25px;
+            margin-top: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+        .content {
+            padding: 40px 30px;
+            line-height: 1.6;
+        }
+        .greeting {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        .message {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 25px;
+        }
+        .highlight {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: bold;
+        }
+        .achievement-section {
+            background: linear-gradient(135deg, #ecf0f1, #bdc3c7);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 25px 0;
+            text-align: center;
+            border-left: 5px solid #f39c12;
+        }
+        .achievement-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        .achievement-text {
+            font-size: 18px;
+            color: #333;
+            font-weight: 600;
+        }
+        .stats-section {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+            text-align: center;
+        }
+        .stat-item {
+            flex: 1;
+            padding: 20px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border-radius: 10px;
+            margin: 0 10px;
+        }
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            display: block;
+        }
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .gift-section {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 25px 0;
+            text-align: center;
+            border: 2px dashed #f39c12;
+        }
+        .gift-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        .gift-text {
+            font-size: 18px;
+            color: #333;
+            font-weight: 600;
+        }
+        .footer {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .company-logo {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .company-info {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .celebration {
+            text-align: center;
+            font-size: 40px;
+            margin: 20px 0;
+            animation: celebrate 3s ease-in-out infinite;
+        }
+        @keyframes celebrate {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .divider {
+            height: 3px;
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            margin: 30px 0;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>{{years}} Yıllık İş Yıl Dönümünüz<br>Kutlu Olsun!</h1>
+            <div class="years-badge">{{years}} YIL</div>
+        </div>
+        
+        <div class="content">
+            <div class="greeting">
+                Sevgili <span class="highlight">{{first_name}} {{last_name}}</span>,
+            </div>
+            
+            <div class="celebration">🎉🏆🎉</div>
+            
+            <div class="message">
+                <strong>🎊 Bugün Plus Kitchen ailesindeki {{years}}. yılınızı kutluyoruz!</strong>
+            </div>
+            
+            <div class="stats-section">
+                <div class="stat-item">
+                    <span class="stat-number">{{years}}</span>
+                    <span class="stat-label">YIL</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">{{hire_date}}</span>
+                    <span class="stat-label">BAŞLANGIÇ</span>
+                </div>
+            </div>
+            
+            <div class="message">
+                <strong>{{hire_date}}</strong> tarihinden bugüne kadar gösterdiğiniz <span class="highlight">özveri ve katkılarınız</span> için teşekkür ederiz. Sizinle çalışmak bizim için bir onur.
+            </div>
+            
+            <div class="achievement-section">
+                <div class="achievement-icon">🌟</div>
+                <div class="achievement-text">
+                    "Önümüzdeki yıllarda da birlikte büyümeye ve<br>
+                    başarılar elde etmeye devam edeceğiz."
+                </div>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div class="gift-section">
+                <div class="gift-icon">🎁</div>
+                <div class="gift-text">
+                    Size özel yıl dönümü hediyeniz<br>
+                    İK departmanımızda sizleri bekliyor!
+                </div>
+            </div>
+            
+            <div class="message" style="text-align: center; margin-top: 30px;">
+                <strong>Saygılarımızla,</strong><br>
+                <span class="highlight">Plus Kitchen Yönetimi</span>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <div class="company-logo">🍽️ Plus Kitchen</div>
+            <div class="company-info">
+                Bu otomatik bir e-postadır. Lütfen yanıtlamayın.<br>
+                Plus Kitchen Portal - İnsan Kaynakları Sistemi
+            </div>
+        </div>
+    </div>
+</body>
+</html>
