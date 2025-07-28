@@ -1075,9 +1075,47 @@ def special_days():
 
 # Duplicate create_department removed
 
-@app.route('/profile')
+@app.route('/profile', methods=['GET', 'POST'])
 @require_login  
 def profile():
+    if request.method == 'POST':
+        # Profil güncelleme işlemi
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            
+            # Form verilerini al
+            first_name = request.form.get('first_name')
+            last_name = request.form.get('last_name')
+            email = request.form.get('email')
+            phone = request.form.get('phone')
+            birth_date = request.form.get('birth_date')
+            hire_date = request.form.get('hire_date')
+            
+            # Kullanıcı bilgilerini güncelle
+            cursor.execute('''
+                UPDATE users 
+                SET first_name = %s, last_name = %s, email = %s, phone = %s, 
+                    birth_date = %s, hire_date = %s, updated_at = NOW()
+                WHERE id = %s
+            ''', (first_name, last_name, email, phone, birth_date, hire_date, session['user_id']))
+            
+            conn.commit()
+            conn.close()
+            
+            # Session bilgilerini güncelle
+            session['first_name'] = first_name
+            session['last_name'] = last_name
+            
+            flash('Profil bilgileriniz başarıyla güncellendi!', 'success')
+            return redirect(url_for('profile'))
+            
+        except Exception as e:
+            print(f"Profil güncelleme hatası: {e}")
+            flash('Profil güncellenirken bir hata oluştu!', 'error')
+            return redirect(url_for('profile'))
+    
+    # GET isteği - profil sayfasını göster
     conn = get_db_connection()
     cursor = conn.cursor(pymysql.cursors.DictCursor)
     cursor.execute('''
