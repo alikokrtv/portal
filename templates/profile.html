@@ -73,10 +73,30 @@
             <div class="card-header">
                 <h5 class="mb-0">
                     <i class="bi bi-person-lines-fill me-2"></i>
-                    Kişisel Bilgiler
+                    Hakkımda
                 </h5>
             </div>
             <div class="card-body">
+                <div class="mb-4">
+                    <h6 class="text-primary mb-3">🇹🇷 Türkçe</h6>
+                    <p class="mb-3">Ben Ali. İstanbul'da yaşayan, üretmeyi seven, çok yönlü biriyim. Yazılım geliştirme, görsel tasarım, video kurgu ve dijital içerik üretimi gibi alanlarda kendi çabamla kendimi geliştirdim.</p>
+                    <p class="mb-3">Zamanla sadece görevleri tamamlayan biri olmaktan çıkıp; fikir üreten, çözümler tasarlayan, ekiplerin yükünü alan ve sistem kuran birine dönüştüm.</p>
+                    <p class="mb-3">Kurumsal hayatta ayakta kalmak için değil, bir değer katmak için mücadele ediyorum. Estetik bakış açım, çözüm odaklı yapım ve hızlı öğrenme becerimle bulunduğum alanlara katkı sağlıyorum.</p>
+                    <p class="mb-0">Maddi zorluklara rağmen, öğrenmeye olan açlığımı hiç kaybetmedim. Kod yazarken de, tasarım yaparken de, video kurarken de tek hedefim var: Gördüğüm eksiklere çözüm bulmak ve daha iyisini ortaya koymak.</p>
+                </div>
+                
+                <hr class="my-4">
+                
+                <div class="mb-4">
+                    <h6 class="text-primary mb-3">🇬🇧 English</h6>
+                    <p class="mb-3">I'm Ali, a versatile individual living in Istanbul who loves to create. I've developed myself in areas like software development, visual design, video editing, and digital content creation through my own efforts.</p>
+                    <p class="mb-3">Over time, I've evolved from someone who just completes tasks to someone who generates ideas, designs solutions, takes on team burdens, and builds systems.</p>
+                    <p class="mb-3">I strive not just to survive in corporate life, but to add value. I contribute to the fields I work in with my aesthetic perspective, solution-oriented approach, and rapid learning ability.</p>
+                    <p class="mb-0">Despite financial difficulties, I've never lost my hunger for learning. Whether coding, designing, or editing videos, I have one goal: to find solutions to the gaps I see and create something better.</p>
+                </div>
+                
+                <hr class="my-4">
+                
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-muted">Ad</label>
@@ -92,7 +112,7 @@
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-muted">Telefon</label>
-                        <div class="form-control-plaintext">{{ user.phone or 'Belirtilmemiş' }}</div>
+                        <div class="form-control-plaintext">{{ user.phone_number or 'Belirtilmemiş' }}</div>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-muted">Departman</label>
@@ -101,6 +121,80 @@
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-muted">Pozisyon</label>
                         <div class="form-control-plaintext">{{ user.position or 'Belirtilmemiş' }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-cart-check me-2"></i>
+                    E-ticaret Deneyimi
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <h6 class="text-primary mb-3">🇹🇷 Türkçe</h6>
+                    <p class="mb-3">E-ticaret platformları ve ödeme sistemleri konusunda geniş deneyime sahibim. Çeşitli platformlarda entegrasyon ve süreç yönetimi konularında uzmanlaştım.</p>
+                    <div class="row g-2">
+                        <div class="col-md-4 col-6">
+                            <span class="badge bg-success w-100 p-2">İdeasoft</span>
+                        </div>
+                        <div class="col-md-4 col-6">
+                            <span class="badge bg-info w-100 p-2">Akınsoft</span>
+                        </div>
+                        <div class="col-md-4 col-6">
+                            <span class="badge bg-primary w-100 p-2">Shopify</span>
+                        </div>
+                        <div class="col-md-4 col-6">
+                            <span class="badge bg-warning w-100 p-2">Etsy</span>
+                        </div>
+                        <div class="col-md-4 col-6">
+                            <span class="badge bg-secondary w-100 p-2">WordPress</span>
+                        </div>
+                        <div class="col-md-4 col-6">
+                            <span class="badge bg-danger w-100 p-2">Trendyol Partner</span>
+                        </div>
+                        <div class="col-md-4 col-6">
+                            <span class="badge bg-dark w-100 p-2">Yemeksepeti Partner</span>
+                        </div>
+                        <div class="col-md-4 col-6">
+                            <span class="badge bg-success w-100 p-2">OnayPaytr</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr class="my-4">
+                
+                <div class="mb-0">
+                    <h6 class="text-primary mb-3">🇬🇧 English</h6>
+                    <p class="mb-3">I have extensive experience with e-commerce platforms and payment systems. I've specialized in integration and process management across various platforms.</p>
+                    <div class="row g-2">
+                        <div class="col-md-4 col-6">
+                            <span class="badge bg-success w-100 p-2">İdeasoft</span>
+                        </div>
+                        <div class="col-md-4 col-6">
+                            <span class="badge bg-info w-100 p-2">Akınsoft</span>
+                        </div>
+                        <div class="col-md-4 col-6">
+                            <span class="badge bg-primary w-100 p-2">Shopify</span>
+                        </div>
+                        <div class="col-md-4 col-6">
+                            <span class="badge bg-warning w-100 p-2">Etsy</span>
+                        </div>
+                        <div class="col-md-4 col-6">
+                            <span class="badge bg-secondary w-100 p-2">WordPress</span>
+                        </div>
+                        <div class="col-md-4 col-6">
+                            <span class="badge bg-danger w-100 p-2">Trendyol Partner</span>
+                        </div>
+                        <div class="col-md-4 col-6">
+                            <span class="badge bg-dark w-100 p-2">Yemeksepeti Partner</span>
+                        </div>
+                        <div class="col-md-4 col-6">
+                            <span class="badge bg-success w-100 p-2">OnayPaytr</span>
+                        </div>
                     </div>
                 </div>
             </div>

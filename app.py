@@ -2278,6 +2278,71 @@ def reset_password(token):
     
     return render_template('reset_password.html', token_valid=token_valid)
 
+@app.route('/find-account', methods=['GET', 'POST'])
+def find_account():
+    """Hesap bulma sayfası - Kişisel bilgilerle hesap bulma"""
+    if request.method == 'POST':
+        first_name = request.form.get('first_name', '').strip()
+        last_name = request.form.get('last_name', '').strip()
+        birth_date = request.form.get('birth_date', '').strip()
+        
+        if not all([first_name, last_name, birth_date]):
+            flash('Tüm alanları doldurun', 'error')
+            return render_template('find_account.html')
+        
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor(pymysql.cursors.DictCursor)
+            
+            # Kullanıcıyı bul
+            cursor.execute("""
+                SELECT id, username, first_name, last_name, email, birth_date
+                FROM users 
+                WHERE LOWER(first_name) = LOWER(%s) 
+                AND LOWER(last_name) = LOWER(%s) 
+                AND birth_date = %s
+            """, (first_name, last_name, birth_date))
+            
+            user = cursor.fetchone()
+            conn.close()
+            
+            if user:
+                # Güvenlik için doğrudan şifre göstermek yerine şifre sıfırlama token'ı oluştur
+                conn = get_db_connection()
+                cursor = conn.cursor()
+                
+                # Token oluştur
+                token = str(uuid.uuid4())
+                expires_at = datetime.now() + timedelta(hours=1)
+                
+                # Eski tokenları temizle
+                cursor.execute("DELETE FROM password_reset_tokens WHERE user_id = %s", (user['id'],))
+                
+                # Yeni token kaydet
+                cursor.execute("""
+                    INSERT INTO password_reset_tokens (user_id, token, expires_at) 
+                    VALUES (%s, %s, %s)
+                """, (user['id'], token, expires_at))
+                
+                conn.commit()
+                conn.close()
+                
+                # Reset linki oluştur
+                reset_link = f"http://portal.pluskitchen.com.tr/reset-password/{token}"
+                
+                return render_template('find_account.html', 
+                                     user_found=True, 
+                                     user=user, 
+                                     reset_link=reset_link)
+            else:
+                flash('Girdiğiniz bilgilerle eşleşen bir hesap bulunamadı', 'error')
+                
+        except Exception as e:
+            print(f"Find account error: {e}")
+            flash('Bir hata oluştu, lütfen daha sonra tekrar deneyin', 'error')
+    
+    return render_template('find_account.html', user_found=False)
+
 if __name__ == '__main__':
     app.run(
         debug=True,
