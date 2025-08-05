@@ -431,10 +431,10 @@ def dashboard():
     except:
         total_departments = 0
     
-    # Günlük menü verilerini al (sadece Genel Müdürlük personeli için)
+    # Günlük menü verilerini al (tüm personel için)
     daily_menu = []
     today_date = None
-    if session.get('department_id') == 11:  # 11 = GENEL MÜDÜRLÜK
+    try:
         cursor.execute('''
             SELECT menu_date, day_name, soup, main_dish, side_dish, dessert, drink, appetizer,
                    DATE(NOW()) as today
@@ -448,6 +448,9 @@ def dashboard():
         # Bugünün tarihini al
         if daily_menu:
             today_date = daily_menu[0]['today']
+    except Exception as e:
+        print(f"Menü verileri alınırken hata: {e}")
+        daily_menu = []
     
     conn.close()
     
