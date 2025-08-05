@@ -694,7 +694,8 @@ def send_test_emails():
     
     # Test edilecek kişiler
     recipients = [
-        {"email": "ali.kok@pluskitchen.com.tr", "first_name": "Ali", "last_name": "Kök", "years": 5}
+        {"email": "ali.kok@pluskitchen.com.tr", "first_name": "Ali", "last_name": "Kök", "years": 5},
+        {"email": "yeliz.ay@pluskitchen.com.tr", "first_name": "Yeliz", "last_name": "Ay", "years": 3}
     ]
     
     for person in recipients:
